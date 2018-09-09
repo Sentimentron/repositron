@@ -151,3 +151,10 @@ func (s *Store) DeleteById(id int64) error {
 	_, err := s.handle.Exec(`DELETE FROM blobs WHERE id = $1`, id)
 	return err
 }
+
+// GetAllBuckets retrieves a list of all the available buckets
+func (s *Store) GetAllBuckets() ([]string, error) {
+	ret := make([]string, 0)
+	err := s.handle.Select(&ret, "SELECT DISTINCT bucket FROM blobs")
+	return ret, err
+}

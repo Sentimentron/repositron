@@ -15,5 +15,8 @@ type MetadataStore interface {
 	GetBlobIdsMatchingName(name string) ([]int64, error)
 	GetBlobIdsMatchingBucket(name string) ([]int64, error)
 
+	// Retrieves each distinct bucket name.
+	GetAllBuckets() ([]string, error)
+
 	Close() error
 }

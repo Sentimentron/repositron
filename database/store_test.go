@@ -129,9 +129,75 @@ func TestStore_StoreBlobRecord(t *testing.T) {
 				Convey("Should be able to compare them...", func() {
 					cur, err := handle.RetrieveBlobById(c.Id)
 					So(err, ShouldBeNil)
-					So(cur, ShouldResemble, c)
+					So(cur.Checksum, ShouldEqual, c.Checksum)
+					So(cur.Name, ShouldEqual, c.Name)
+					So(cur.Bucket, ShouldEqual, c.Bucket)
+					So(cur.Class, ShouldEqual, c.Class)
+					So(cur.Id, ShouldEqual, c.Id)
+					So(cur.Metadata, ShouldResemble, c.Metadata)
+					So(cur.Size, ShouldEqual, c.Size)
+					So(cur.Uploader, ShouldEqual, c.Uploader)
+					So(cur.Date.Sub(c.Date).Seconds(), ShouldBeLessThan, 1)
 				})
 
+			})
+
+		})
+	})
+}
+
+func TestStore_RetrieveAllBuckets(t *testing.T) {
+	Convey("Given a blank store...", t, func() {
+
+		tmpFile, err := ioutil.TempFile("", "repo")
+		So(err, ShouldBeNil)
+		log.Printf("Creating temporary file at: %s", tmpFile.Name())
+		os.Remove(tmpFile.Name())
+
+		handle, err := CreateStore(tmpFile.Name())
+		So(err, ShouldBeNil)
+
+		Convey("And some inserted items...", func() {
+			metadata := make(map[string]interface{})
+			metadata["some"] = "val"
+
+			b1 := &models.Blob{
+				0,
+				"my_test_file",
+				"test_bucket",
+				time.Now(),
+				models.TemporaryBlob,
+				"",
+				"default",
+				metadata,
+				-1,
+			}
+
+			inserted, err := handle.StoreBlobRecord(b1)
+			So(err, ShouldBeNil)
+			So(inserted, ShouldNotBeNil)
+
+			b2 := &models.Blob{
+				0,
+				"my_test_file",
+				"test_bucket_2",
+				time.Now(),
+				models.TemporaryBlob,
+				"",
+				"default",
+				metadata,
+				-1,
+			}
+
+			inserted, err = handle.StoreBlobRecord(b2)
+			So(err, ShouldBeNil)
+			So(inserted, ShouldNotBeNil)
+
+			Convey("Should be able to retrieve the buckets...", func() {
+				allBuckets, err := handle.GetAllBuckets()
+				So(err, ShouldBeNil)
+				So("test_bucket", ShouldBeIn, allBuckets)
+				So("test_bucket_2", ShouldBeIn, allBuckets)
 			})
 
 		})
