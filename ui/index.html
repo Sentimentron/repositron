@@ -3,6 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>Repositron - Index</title>
+    <style type="text/css">
+        body {
+            font-family: "DejaVu Sans Mono", courier;
+            font-size: 14px;
+        }
+        table {
+            border: 5px grey ridge;
+            width: 100%;
+        }
+        td, th {
+            text-align: left;
+        }
+        tr {
+            border: 5px grey ridge;
+        }
+
+        .name-col {min-width: 300px;}
+        .date-col {min-width: 250px;}
+        .checksum-col{min-width: 475px;}
+        .metadata-col{min-width: 600px;}
+        .uploader-col{min-width: 150px;}
+        .controls-col{min-width: 100px;}
+
+
+    </style>
 </head>
 <body>
 
@@ -13,11 +38,37 @@
 {{if .Buckets -}}
 {{- range .Buckets}}
 <ul>
-    <li><a href="{{ .Name | formatBucketAsLink }}">{{.Name}}</a></li>
+    <li><a href="#{{ .Name | formatBucketAsLink }}">{{.Name}}</a></li>
 </ul>
 {{- end }}
 {{- else }}
 No files are available.
+{{- end}}
+
+{{if .Buckets -}}
+{{- range .Buckets}}
+<h2 id="{{ .Name | formatBucketAsLink }}">{{.Name}}</h2>
+        <table>
+            <tr>
+                <th class="name-col">Name</th>
+                <th class="date-col">Date Uploaded</th>
+                <th class="checksum-col">Checksum</th>
+                <th class="uploader-col">Uploader</th>
+                <th class="metadata-col">Metadata</th>
+                <th class="controls-col">Controls</th>
+            </tr>
+        {{- range .Contents}}
+            <tr>
+                <td class="name-col"><a href="{{.Id | createDownloadLink}}">{{.Name}}</a></td>
+                <td class="date-col">{{.Date | formatDate}}</td>
+                <td class="checksum-col"><code>{{.Checksum}}</code></td>
+                <td class="uploader-col">{{.Uploader}}</td>
+                <td class="metadata-col"><pre>{{.Metadata | formatJSON}}</pre></td>
+                <td class="controls-col"><a href="{{.Id | createDeleteLink}}">Delete</a></td>
+            </tr>
+        {{- end}}
+        </table>
+{{- end}}
 {{- end}}
 
 

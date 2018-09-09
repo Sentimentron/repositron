@@ -54,6 +54,8 @@ func main() {
 
 	r.Handle("/", ui.IndexEndpointFactory(dataStore, uiDir))
 	r.Handle("/upload", ui.UploadEndpointFactory(uiDir))
+	r.Handle("/delete/{id}", ui.DeleteConfirmEndpointFactory(dataStore, uiDir))
+	r.Handle("/del/{id}", ui.DeleteEndpointFactory(dataStore))
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)

@@ -15,9 +15,12 @@ import (
 	"path"
 	"strings"
 	"time"
+	"github.com/gorilla/mux"
+	"strconv"
 )
 
 type UIFile struct {
+	models.Blob
 }
 
 type UIBucket struct {
@@ -35,6 +38,26 @@ type UIUploadData struct {
 
 func formatBucketAsLink(name string) string {
 	return strings.Replace(name, " ", "_", -1)
+}
+
+func createDownloadLink(id int64) string {
+	return fmt.Sprintf("/v1/blobs/%d/content", id)
+}
+
+func createDeleteLink(id int64) string {
+	return fmt.Sprintf("delete/%d", id)
+}
+
+func formatDate(t time.Time) string {
+	return t.Format("15:04:05 Jan 2 2006 MST")
+}
+
+func formatJSON(d map[string]interface{}) string {
+	s, err := json.Marshal(d)
+	if err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
+	return string(s)
 }
 
 func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Handler {
@@ -56,12 +79,37 @@ func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Han
 				Name:     b,
 				Contents: make([]UIFile, 0),
 			}
+
+			// Retrieve all the files inside this bucket
+			allIds, err := store.GetBlobIdsMatchingBucket(b)
+			if err != nil {
+				fmt.Fprintf(w, "Error: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			allBlobs := make([]UIFile, len(allIds))
+			for i, v := range allIds {
+				blob, err := store.RetrieveBlobById(v)
+				if err != nil {
+					fmt.Fprintf(w, "Error retrieving blob: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				allBlobs[i] = UIFile{*blob}
+			}
+
+			cur.Contents = allBlobs
 			displayData = append(displayData, cur)
 		}
 
 		// Render out a template.
 		fmap := template.FuncMap{
 			"formatBucketAsLink": formatBucketAsLink,
+			"createDownloadLink": createDownloadLink,
+			"createDeleteLink": createDeleteLink,
+			"formatDate": formatDate,
+			"formatJSON": formatJSON,
 		}
 		t := template.Must(template.New("index.html").Funcs(fmap).ParseFiles(path.Join(uiDir, "index.html")))
 
@@ -73,6 +121,67 @@ func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Han
 		}
 	})
 
+}
+
+func createActualDeleteLink(id int64) string {
+	return fmt.Sprintf("/del/%d", id)
+}
+
+func DeleteConfirmEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Convert URL parameter
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Retrieve the blob
+		blob, err := store.RetrieveBlobById(id)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		fmap := template.FuncMap {
+			"createActualDeleteLink": createActualDeleteLink,
+		}
+
+		t := template.Must(template.New("delete.html").Funcs(fmap).ParseFiles(path.Join(uiDir, "delete.html")))
+		err = t.Execute(w, UIFile{*blob})
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func DeleteEndpointFactory(store interfaces.MetadataStore) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Convert URL parameter
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		err = store.DeleteBlobById(id)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/", 301)
+	})
 }
 
 func ProcessUploadEndpointFactory(store interfaces.MetadataStore, staticDir string) http.Handler {
