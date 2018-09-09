@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func BlobContentEndpointFactory(store interfaces.MetadataStore) http.Handler {
+func GetBlobContentEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

@@ -35,7 +35,7 @@ paths:
         - needsTesting
       description: >-
         Returns a list of blobs stored.
-      operationId: listBlobs
+      operationId: listAllBlobs
       responses:
         200:
           description: Successful
