@@ -31,7 +31,6 @@ paths:
     get:
       tags:
         - blobs
-        - needsImplementation
         - needsTesting
       description: >-
         Returns a list of blobs stored.
@@ -91,7 +90,6 @@ paths:
       operationId: getBlobDescriptionById
       tags:
         - blobs
-        - needsImplementation
         - needsTesting
       parameters:
         - name: id

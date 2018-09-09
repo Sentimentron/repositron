@@ -60,9 +60,9 @@ func main() {
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
-	s.Handle("/blobs/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore))
-	s.Handle("/blobs/{id}/content", api.GetBlobContentEndpointFactory(dataStore))
-	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore))
+	s.Handle("/blobs/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/{id}/content", api.GetBlobContentEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore)).Methods("GET")
 
 	// Set up a handler which will serve permanent files
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
