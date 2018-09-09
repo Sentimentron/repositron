@@ -60,6 +60,7 @@ func main() {
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
+	s.Handle("/blobs/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore))
 	s.Handle("/blobs/{id}/content", api.GetBlobContentEndpointFactory(dataStore))
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore))
 

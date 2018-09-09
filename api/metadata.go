@@ -6,6 +6,8 @@ import (
 	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/Sentimentron/repositron/models"
 	"net/http"
+	"github.com/gorilla/mux"
+	"strconv"
 )
 
 func ListAllBlobsEndpointFactory(store interfaces.MetadataStore) http.Handler {
@@ -54,6 +56,32 @@ func ListAllBlobsEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
 func GetBlobDescriptionByIdEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
-	return nil
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+
+
+		blob, err := store.RetrieveBlobById(id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+		jsonMarshaller := json.NewEncoder(w)
+		err = jsonMarshaller.Encode(blob)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+	})
 
 }
