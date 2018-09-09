@@ -9,7 +9,7 @@ type MetadataStore interface {
 	FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error)
 
 	DeleteBlobById(id int64) error
-	RetrieveBlobById(id int64) error
+	RetrieveBlobById(id int64) (*models.Blob, error)
 
 	GetBlobIdsMatchingChecksum(checksum string) ([]int64, error)
 	GetBlobIdsMatchingName(name string) ([]int64, error)

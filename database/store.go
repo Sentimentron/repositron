@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/Sentimentron/repositron/models"
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var NoMatchingBlobsError = errors.New("no matching blobs")
@@ -146,7 +148,7 @@ func (s *Store) GetBlobIdsMatchingBucket(bucket string) ([]int64, error) {
 }
 
 // DeleteBlobById deletes a record.
-func (s *Store) DeleteById(id int64) error {
+func (s *Store) DeleteBlobById(id int64) error {
 	// Process the update
 	_, err := s.handle.Exec(`DELETE FROM blobs WHERE id = $1`, id)
 	return err

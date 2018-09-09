@@ -243,7 +243,7 @@ func TestStore_DeleteById(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("Should be able to delete that item...", func() {
-				err := handle.DeleteById(updated.Id)
+				err := handle.DeleteBlobById(updated.Id)
 				So(err, ShouldBeNil)
 
 				_, err = handle.RetrieveBlobById(updated.Id)

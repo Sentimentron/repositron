@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Repositron - Index</title>
+</head>
+<body>
+
+<h1>Index</h1>
+
+<a href="upload">Upload</a>
+
+{{if .Buckets -}}
+{{- range .Buckets}}
+<ul>
+    <li><a href="{{ .Name | formatBucketAsLink }}">{{.Name}}</a></li>
+</ul>
+{{- end }}
+{{- else }}
+No files are available.
+{{- end}}
+
+
+</body>
+</html>

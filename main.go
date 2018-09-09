@@ -1,8 +1,10 @@
-package repositron
+package main
 
 import (
 	"flag"
 	"fmt"
+	"github.com/Sentimentron/repositron/database"
+	"github.com/Sentimentron/repositron/ui"
 	"github.com/Sentimentron/repositron/utils"
 	"github.com/gorilla/mux"
 	"log"
@@ -15,9 +17,10 @@ import (
 func main() {
 
 	// Configure some information about this whole thing
-	var dir string
+	var dir, store string
 	var quota int
 	flag.StringVar(&dir, "dir", "static/", "The directory to serve files from. Defaults to static/.")
+	flag.StringVar(&store, "store", "const/v1.sqlite", "The Sqlite3 file containing the store.")
 	flag.IntVar(&quota, "quota", 1, "Maximum temporary file quota")
 	flag.Parse()
 
@@ -33,9 +36,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create the store
+	dataStore, err := database.CreateStore(store)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Configure the URLs
 	r := mux.NewRouter()
-	s := r.PathPrefix("/v1").Subrouter()
+	// s := r.PathPrefix("/v1").Subrouter()
+
+	uiDir, err := filepath.Abs("ui")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to determine the absolute path of %s", uiDir)
+		os.Exit(1)
+	}
+
+	r.Handle("/", ui.IndexEndpointFactory(dataStore, uiDir))
+	r.Handle("/upload", ui.UploadEndpointFactory(uiDir))
+	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
 	//s.HandleFunc("/blobs/{key}", BlobHandler)

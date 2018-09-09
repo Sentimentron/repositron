@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload - Repositron</title>
+</head>
+<body>
+
+<h1>Upload file</h1>
+
+<form action="upload/process" enctype="multipart/form-data" method="post">
+    <div>
+        <label for="name">File Name: </label>
+        <input type="text" name="name" id="name"/>
+    </div>
+
+    <div>
+        <label for="bucket">Bucket: </label>
+        <input type="text" name="bucket" id="bucket"/>
+    </div>
+
+    <div>
+        <label for="metadata">Metadata (JSON):</label>
+        <textarea name="metadata" id="metadata">
+
+        </textarea>
+    </div>
+
+    <div>
+        <label for="class">File type:</label>
+        <select name="class">
+            <option value="temp">Temporary</option>
+            <option value="permanent">Permanent</option>
+        </select>
+    </div>
+
+    <div>
+        <p>Uploader will be: <b>Default User</b></p>
+    </div>
+
+    <div>
+        <p>Upload date will be around: <b>{{ .CurrentDate }}</b></p>
+    </div>
+
+    <div>
+        <label for="upload">Select a file to upload:</label>
+        <input type="file" name="upload" id="upload">
+    </div>
+
+    <div>
+        <input type="submit" value="Upload" name="submit"/>
+    </div>
+
+</form>
+
+
+</body>
+</html>
