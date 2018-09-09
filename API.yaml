@@ -1,0 +1,226 @@
+openapi: 3.0.0
+info:
+  title: Repositron
+  description: >-
+    Repositron provides a CRUD system for blobs of data.
+
+  version: 0.1.0
+
+servers:
+  - url: http://api.example.com/v1
+    description: Optional server description, e.g. Main (production) server
+  - url: http://staging-api.example.com
+    description: Optional server description, e.g. Internal staging server for testing
+
+tags:
+  - name: blob
+    description: >-
+      Blobs are arbitrary, named series of bytes, which have metadata.
+
+  - name: needsImplementation
+    description: >-
+      These are endpoints which are defined, but not implemented.
+
+  - name: needsTesting
+    description: >-
+      These are endpoints which need test coverage
+
+paths:
+
+  /blobs:
+    get:
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      description: >-
+        Returns a list of blobs stored.
+      operationId: listBlobs
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlobDescription'
+    post:
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      description: >-
+        Uploads a new object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlobDescription"
+      operationId: createBlob
+      responses:
+        202:
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlobUploadResponse'
+
+  /blobs/byId/{id}/content:
+    get:
+      operationId: getBlobContent
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            The identifier for a given artefact.
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      description: >-
+        Retrieves the contents of a blob.
+      responses:
+        307:
+          description: Follow the response to download the file.
+
+  /blobs/byId/{id}:
+    get:
+      operationId: getBlobDescriptionById
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            The identifier for a given Blob.
+      responses:
+        200:
+          description: Successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlobDescription'
+
+    delete:
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            The identifier for a given Blob.
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      description: >-
+        Removes a blob immediately.
+
+      responses:
+        202:
+          description: Accepted.
+
+  /blobs/search:
+    post:
+      tags:
+        - blobs
+        - needsImplementation
+        - needsTesting
+      description: >-
+        Searches the database for Blobs that possibly match the query.
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlobSearch"
+
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+
+
+components:
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+  schemas:
+
+    BlobSearch:
+      type: object
+      properties:
+        name:
+          type: string
+        checksum:
+          type: string
+        bucket:
+          type: string
+
+    BlobUploadResponse:
+      type: object
+      required:
+        - redirectUrl
+      properties:
+        redirectUrl:
+          type: string
+          description: >-
+            Make a POST to this URL to upload the object.
+
+    BlobDescription:
+      type: object
+      required:
+        - name
+        - bucket
+        - uploaded
+        - type
+        - checksum
+        - uploader
+        - metadata
+        - size
+      properties:
+        uploaded:
+          type: string
+          format: datetime
+        name:
+          type: string
+        bucket:
+          type: string
+        checksum:
+          type: string
+          description: >-
+            SHA256, hex-encoded checksum.
+        uploader:
+          type: string
+        metadata:
+          type: object
+          description: >-
+            Arbitrary JSON metadata.
+        size:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum:
+            - temp
+            - permanent
+
+security:
+  - bearerAuth: []

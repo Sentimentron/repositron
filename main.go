@@ -37,8 +37,8 @@ func main() {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/v1").Subrouter()
 
-	s.HandleFunc("/blobs/", BlobsHandler)
-	s.HandleFunc("/blobs/{key}", BlobHandler)
+	//s.HandleFunc("/blobs/", BlobsHandler)
+	//s.HandleFunc("/blobs/{key}", BlobHandler)
 
 	// Set up a handler which will serve permanent files
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
