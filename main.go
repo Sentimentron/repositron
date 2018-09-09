@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Sentimentron/repositron/api"
 	"github.com/Sentimentron/repositron/database"
 	"github.com/Sentimentron/repositron/ui"
 	"github.com/Sentimentron/repositron/utils"
@@ -44,7 +45,7 @@ func main() {
 
 	// Configure the URLs
 	r := mux.NewRouter()
-	// s := r.PathPrefix("/v1").Subrouter()
+	s := r.PathPrefix("/v1").Subrouter()
 
 	uiDir, err := filepath.Abs("ui")
 	if err != nil {
@@ -59,7 +60,7 @@ func main() {
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
-	//s.HandleFunc("/blobs/{key}", BlobHandler)
+	s.Handle("/blobs/{id}/content", api.BlobContentEndpointFactory(dataStore))
 
 	// Set up a handler which will serve permanent files
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))

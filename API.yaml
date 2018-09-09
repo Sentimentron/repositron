@@ -79,7 +79,6 @@ paths:
             The identifier for a given artefact.
       tags:
         - blobs
-        - needsImplementation
         - needsTesting
       description: >-
         Retrieves the contents of a blob.
