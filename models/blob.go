@@ -15,7 +15,7 @@ type Blob struct {
 	Name     string      `json:"name" validate:"required"`
 	Bucket   string      `json:"bucket" validate:"required"`
 	Date     time.Time   `json:"uploaded"`
-	Class    BlobType    `json:"type" validate:"permanent|temp"`
+	Class    BlobType    `json:"type" validate:"required,oneof=permanent temp"`
 	Checksum string      `db:"sha1" json:"sha1"`
 	Uploader string      `json:"owner" validate:"required"`
 	Metadata MetadataMap `json:"metadata"`

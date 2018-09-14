@@ -41,7 +41,7 @@ func formatBucketAsLink(name string) string {
 }
 
 func createDownloadLink(id int64) string {
-	return fmt.Sprintf("/v1/blobs/%d/content", id)
+	return fmt.Sprintf("/v1/blobs/byId/%d/content", id)
 }
 
 func createDeleteLink(id int64) string {
@@ -265,8 +265,10 @@ func ProcessUploadEndpointFactory(store interfaces.MetadataStore, staticDir stri
 			return
 		}
 
+		f.Seek(0, 0)
+
 		// Compute the checksum of the item
-		newBlob.Checksum = utils.ComputeSHA256Checksum(&buf)
+		newBlob.Checksum = utils.ComputeSHA256Checksum(f)
 
 		// Finalize the store
 		_, err = store.FinalizeBlobRecord(newBlob)

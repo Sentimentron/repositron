@@ -60,9 +60,10 @@ func main() {
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
-	s.Handle("/blobs/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore)).Methods("GET")
-	s.Handle("/blobs/{id}", api.DeleteBlobByIdEndpointFactory(dataStore, dir)).Methods("DELETE")
-	s.Handle("/blobs/{id}/content", api.GetBlobContentEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id}", api.DeleteBlobByIdEndpointFactory(dataStore, dir)).Methods("DELETE")
+	s.Handle("/blobs/byId/{id}/content", api.GetBlobContentEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(dataStore)).Methods("POST")
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore)).Methods("GET")
 
 	// Set up a handler which will serve permanent files
