@@ -1,6 +1,11 @@
 package interfaces
 
-import "github.com/Sentimentron/repositron/models"
+import (
+	"github.com/Sentimentron/repositron/models"
+	"errors"
+)
+
+var NoMatchingBlobsError = errors.New("no matching blobs")
 
 type MetadataStore interface {
 	// StoreBlobRecord commit WIP metadata to the database, returns a new Blob

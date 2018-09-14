@@ -1,14 +1,12 @@
 package database
 
 import (
-	"errors"
 	"github.com/Sentimentron/repositron/models"
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/Sentimentron/repositron/interfaces"
 )
-
-var NoMatchingBlobsError = errors.New("no matching blobs")
 
 type Store struct {
 	path   string
@@ -103,7 +101,7 @@ func (s *Store) RetrieveBlobById(id int64) (*models.Blob, error) {
 		return nil, err
 	}
 	if len(ret) == 0 {
-		return nil, NoMatchingBlobsError
+		return nil, interfaces.NoMatchingBlobsError
 	}
 	return &ret[0], nil
 }
@@ -116,7 +114,7 @@ func (s *Store) GetBlobIdsMatchingChecksum(checksum string) ([]int64, error) {
 		return nil, err
 	}
 	if len(ret) == 0 {
-		return nil, NoMatchingBlobsError
+		return nil, interfaces.NoMatchingBlobsError
 	}
 	return ret, nil
 }
@@ -129,7 +127,7 @@ func (s *Store) GetBlobIdsMatchingName(name string) ([]int64, error) {
 		return nil, err
 	}
 	if len(ret) == 0 {
-		return nil, NoMatchingBlobsError
+		return nil, interfaces.NoMatchingBlobsError
 	}
 	return ret, nil
 }
@@ -142,7 +140,7 @@ func (s *Store) GetBlobIdsMatchingBucket(bucket string) ([]int64, error) {
 		return nil, err
 	}
 	if len(ret) == 0 {
-		return nil, NoMatchingBlobsError
+		return nil, interfaces.NoMatchingBlobsError
 	}
 	return ret, nil
 }

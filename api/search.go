@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
-	"github.com/Sentimentron/repositron/database"
 )
 
 type BlobSearch struct {
@@ -43,7 +42,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		if qry.Name != nil {
 			ids, err := store.GetBlobIdsMatchingName(*qry.Name)
 			if err != nil {
-				if err != database.NoMatchingBlobsError {
+				if err != interfaces.NoMatchingBlobsError {
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Error: %v", err)
 					return
@@ -58,7 +57,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		if qry.Bucket != nil {
 			ids, err := store.GetBlobIdsMatchingBucket(*qry.Bucket)
 			if err != nil {
-				if err != database.NoMatchingBlobsError{
+				if err != interfaces.NoMatchingBlobsError{
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Error: %v", err)
 					return
@@ -73,7 +72,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		if qry.Checksum != nil {
 			ids, err := store.GetBlobIdsMatchingChecksum(*qry.Checksum)
 			if err != nil {
-				if err != database.NoMatchingBlobsError{
+				if err != interfaces.NoMatchingBlobsError{
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Error: %v", err)
 					return
