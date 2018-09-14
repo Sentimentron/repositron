@@ -118,7 +118,6 @@ paths:
             The identifier for a given Blob.
       tags:
         - blobs
-        - needsImplementation
         - needsTesting
       description: >-
         Removes a blob immediately.

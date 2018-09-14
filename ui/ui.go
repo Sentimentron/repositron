@@ -7,16 +7,16 @@ import (
 	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/Sentimentron/repositron/models"
 	"github.com/Sentimentron/repositron/utils"
+	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
-	"github.com/gorilla/mux"
-	"strconv"
 )
 
 type UIFile struct {
@@ -107,9 +107,9 @@ func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Han
 		fmap := template.FuncMap{
 			"formatBucketAsLink": formatBucketAsLink,
 			"createDownloadLink": createDownloadLink,
-			"createDeleteLink": createDeleteLink,
-			"formatDate": formatDate,
-			"formatJSON": formatJSON,
+			"createDeleteLink":   createDeleteLink,
+			"formatDate":         formatDate,
+			"formatJSON":         formatJSON,
 		}
 		t := template.Must(template.New("index.html").Funcs(fmap).ParseFiles(path.Join(uiDir, "index.html")))
 
@@ -147,7 +147,7 @@ func DeleteConfirmEndpointFactory(store interfaces.MetadataStore, uiDir string) 
 			return
 		}
 
-		fmap := template.FuncMap {
+		fmap := template.FuncMap{
 			"createActualDeleteLink": createActualDeleteLink,
 		}
 
@@ -161,7 +161,7 @@ func DeleteConfirmEndpointFactory(store interfaces.MetadataStore, uiDir string) 
 	})
 }
 
-func DeleteEndpointFactory(store interfaces.MetadataStore) http.Handler {
+func DeleteEndpointFactory(store interfaces.MetadataStore, staticDir string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Convert URL parameter
@@ -174,6 +174,15 @@ func DeleteEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		}
 
 		err = store.DeleteBlobById(id)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		uploadPath := path.Join(staticDir, fmt.Sprintf("%d", id))
+		os.Remove(uploadPath)
+
 		if err != nil {
 			fmt.Fprintf(w, "Error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)

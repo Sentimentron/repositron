@@ -56,11 +56,12 @@ func main() {
 	r.Handle("/", ui.IndexEndpointFactory(dataStore, uiDir))
 	r.Handle("/upload", ui.UploadEndpointFactory(uiDir))
 	r.Handle("/delete/{id}", ui.DeleteConfirmEndpointFactory(dataStore, uiDir))
-	r.Handle("/del/{id}", ui.DeleteEndpointFactory(dataStore))
+	r.Handle("/del/{id}", ui.DeleteEndpointFactory(dataStore, dir))
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
 	s.Handle("/blobs/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/{id}", api.DeleteBlobByIdEndpointFactory(dataStore, dir)).Methods("DELETE")
 	s.Handle("/blobs/{id}/content", api.GetBlobContentEndpointFactory(dataStore)).Methods("GET")
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore)).Methods("GET")
 

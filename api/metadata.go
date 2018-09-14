@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/Sentimentron/repositron/models"
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 
@@ -56,7 +56,7 @@ func ListAllBlobsEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
 func GetBlobDescriptionByIdEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -65,7 +65,6 @@ func GetBlobDescriptionByIdEndpointFactory(store interfaces.MetadataStore) http.
 			fmt.Fprintf(w, "Error: %v", err)
 			return
 		}
-
 
 		blob, err := store.RetrieveBlobById(id)
 		if err != nil {
