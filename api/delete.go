@@ -5,12 +5,10 @@ import (
 	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/gorilla/mux"
 	"net/http"
-	"os"
-	"path"
 	"strconv"
 )
 
-func DeleteBlobByIdEndpointFactory(store interfaces.MetadataStore, staticDir string) http.Handler {
+func DeleteBlobByIdEndpointFactory(metadataStore interfaces.MetadataStore, contentStore interfaces.ContentStore) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -23,23 +21,31 @@ func DeleteBlobByIdEndpointFactory(store interfaces.MetadataStore, staticDir str
 			return
 		}
 
-		// Remove the blob from the store
-		err = store.DeleteBlobById(id)
+		// Retrieve the blob
+		blob, err := metadataStore.RetrieveBlobById(id)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
 		// Remove the blob from the filesystem
-		uploadPath := path.Join(staticDir, fmt.Sprintf("%d", id))
-		os.Remove(uploadPath)
-
+		err = contentStore.DeleteBlobContent(blob)
 		if err != nil {
 			fmt.Fprintf(w, "Error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		// Remove the blob from the metadataStore
+		err = metadataStore.DeleteBlobById(id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusAccepted)
 
 	})
 

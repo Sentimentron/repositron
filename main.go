@@ -68,7 +68,7 @@ func main() {
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
 	s.Handle("/blobs/byId/{id:[0-9]+}", api.GetBlobDescriptionByIdEndpointFactory(metadataStore)).Methods("GET")
-	s.Handle("/blobs/byId/{id:[0-9]+}", api.DeleteBlobByIdEndpointFactory(metadataStore, dir)).Methods("DELETE")
+	s.Handle("/blobs/byId/{id:[0-9]+}", api.DeleteBlobByIdEndpointFactory(metadataStore, contentStore)).Methods("DELETE")
 	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.GetBlobContentEndpointFactory(metadataStore)).Methods("GET")
 	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.UploadContentEndpointFactory(metadataStore, contentStore)).Methods("PUT").Name("ContentUpload")
 	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(metadataStore)).Methods("POST")
