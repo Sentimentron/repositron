@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"gopkg.in/go-playground/validator.v9"
+	"time"
+)
 
 // BlobType consists of a
 type BlobType string
@@ -20,4 +23,12 @@ type Blob struct {
 	Uploader string      `json:"owner" validate:"required"`
 	Metadata MetadataMap `json:"metadata"`
 	Size     int64       `json:"size"`
+}
+
+func (b *Blob) Validate() error {
+
+	validate := validator.New()
+
+	return validate.Struct(b)
+
 }

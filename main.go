@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Sentimentron/repositron/api"
+	"github.com/Sentimentron/repositron/content"
 	"github.com/Sentimentron/repositron/database"
 	"github.com/Sentimentron/repositron/ui"
 	"github.com/Sentimentron/repositron/utils"
@@ -37,8 +38,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create the store
-	dataStore, err := database.CreateStore(store)
+	// Create the metadata store
+	metadataStore, err := database.CreateStore(store)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create the on-disk store
+	contentStore, err := content.CreateStore(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,18 +60,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	r.Handle("/", ui.IndexEndpointFactory(dataStore, uiDir))
+	r.Handle("/", ui.IndexEndpointFactory(metadataStore, uiDir))
 	r.Handle("/upload", ui.UploadEndpointFactory(uiDir))
-	r.Handle("/delete/{id}", ui.DeleteConfirmEndpointFactory(dataStore, uiDir))
-	r.Handle("/del/{id}", ui.DeleteEndpointFactory(dataStore, dir))
-	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(dataStore, dir))
+	r.Handle("/delete/{id}", ui.DeleteConfirmEndpointFactory(metadataStore, uiDir))
+	r.Handle("/del/{id}", ui.DeleteEndpointFactory(metadataStore, dir))
+	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(metadataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
-	s.Handle("/blobs/byId/{id}", api.GetBlobDescriptionByIdEndpointFactory(dataStore)).Methods("GET")
-	s.Handle("/blobs/byId/{id}", api.DeleteBlobByIdEndpointFactory(dataStore, dir)).Methods("DELETE")
-	s.Handle("/blobs/byId/{id}/content", api.GetBlobContentEndpointFactory(dataStore)).Methods("GET")
-	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(dataStore)).Methods("POST")
-	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(dataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id}", api.GetBlobDescriptionByIdEndpointFactory(metadataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id}", api.DeleteBlobByIdEndpointFactory(metadataStore, dir)).Methods("DELETE")
+	s.Handle("/blobs/byId/{id}/content", api.GetBlobContentEndpointFactory(metadataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id}/content", api.UploadContentEndpointFactory(metadataStore, contentStore)).
+		Methods("PUT").Name("ContentUpload")
+	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(metadataStore)).Methods("POST")
+	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(metadataStore)).Methods("GET")
+	s.Handle("/blobs", api.UploadDescriptionEndpointFactory(metadataStore, s)).Methods("PUT")
 
 	// Set up a handler which will serve permanent files
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))

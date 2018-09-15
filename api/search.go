@@ -1,21 +1,21 @@
 package api
 
 import (
-	"net/http"
 	"encoding/json"
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
+	"net/http"
 )
 
 type BlobSearch struct {
-	Name *string `json:"name"`
+	Name     *string `json:"name"`
 	Checksum *string `json:"checksum"`
-	Bucket *string `json:"bucket"`
+	Bucket   *string `json:"bucket"`
 }
 
 func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Parse the input
 		defer r.Body.Close()
@@ -24,7 +24,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&qry)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "Error: %v", err)
 			return
 		}
@@ -57,7 +57,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		if qry.Bucket != nil {
 			ids, err := store.GetBlobIdsMatchingBucket(*qry.Bucket)
 			if err != nil {
-				if err != interfaces.NoMatchingBlobsError{
+				if err != interfaces.NoMatchingBlobsError {
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Error: %v", err)
 					return
@@ -72,7 +72,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		if qry.Checksum != nil {
 			ids, err := store.GetBlobIdsMatchingChecksum(*qry.Checksum)
 			if err != nil {
-				if err != interfaces.NoMatchingBlobsError{
+				if err != interfaces.NoMatchingBlobsError {
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Error: %v", err)
 					return
@@ -100,6 +100,5 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		}
 
 	})
-
 
 }

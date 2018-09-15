@@ -130,7 +130,6 @@ paths:
     post:
       tags:
         - blobs
-        - needsImplementation
         - needsTesting
       description: >-
         Searches the database for Blobs that possibly match the query.
@@ -178,7 +177,7 @@ components:
         redirectUrl:
           type: string
           description: >-
-            Make a POST to this URL to upload the object.
+            Make a PUT to this URL to upload the object.
 
     BlobDescription:
       type: object
