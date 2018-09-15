@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/Sentimentron/repositron/interfaces"
+	"fmt"
 )
 
 type Store struct {
@@ -47,8 +48,8 @@ func (s *Store) Close() error {
 func (s *Store) StoreBlobRecord(blob *models.Blob) (*models.Blob, error) {
 
 	sql := `
-		INSERT INTO blobs (name, bucket, class, uploader, metadata, date) 
-		VALUES (:name, :bucket, :class, :uploader, :metadata, :date)
+		INSERT INTO blobs (name, bucket, class, uploader, metadata, date, sha1, size) 
+		VALUES (:name, :bucket, :class, :uploader, :metadata, :date, :sha1, :size)
 `
 	result, err := s.handle.NamedExec(sql, blob)
 	if err != nil {
@@ -60,10 +61,7 @@ func (s *Store) StoreBlobRecord(blob *models.Blob) (*models.Blob, error) {
 		return nil, err
 	}
 
-	retBlob := *blob
-	retBlob.Id = newId
-
-	return &retBlob, err
+	return s.RetrieveBlobById(newId)
 }
 
 // FinalizeBlobRecord completes a blob and records all fields.
@@ -83,6 +81,10 @@ func (s *Store) FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error) {
 			id = :id
 	`
 
+	if blob.Checksum == "" || blob.Bucket == "" || blob.Name == "" || blob.Class == "" || blob.Uploader == "" || blob.Metadata == nil || blob.Size == 0 {
+		return nil, fmt.Errorf("required finalization data missing")
+	}
+
 	// Process the update
 	_, err := s.handle.NamedExec(sql, blob)
 	if err != nil {
@@ -96,9 +98,9 @@ func (s *Store) FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error) {
 // RetrieveBlobById returns a blob record from the database with a given ID.
 func (s *Store) RetrieveBlobById(id int64) (*models.Blob, error) {
 	ret := make([]models.Blob, 0)
-	err := s.handle.Select(&ret, "SELECT * FROM blobs WHERE id = :id", id)
+	err := s.handle.Select(&ret, "SELECT id, name, bucket, date, class, sha1, uploader, metadata, size FROM blobs WHERE id = :id", id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RetrieveBlobsById: %v", err)
 	}
 	if len(ret) == 0 {
 		return nil, interfaces.NoMatchingBlobsError

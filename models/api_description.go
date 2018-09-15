@@ -1,5 +1,5 @@
 package models
 
 type APIDescription struct {
-	APIVersion string `json:"api_version"`
+	APIVersion string `json:"apiVersion"`
 }

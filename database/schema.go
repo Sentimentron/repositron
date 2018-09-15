@@ -31,10 +31,10 @@ CREATE TABLE blobs (
 	date DATETIME NOT NULL,
 	bucket TEXT NOT NULL,
 	class TEXT NOT NULL,
-	sha1 TEXT,
-	uploader TEXT,
-	metadata TEXT,
-	size INTEGER
+	sha1 TEXT NOT NULL,
+	uploader TEXT NOT NULL,
+	metadata TEXT NOT NULL,
+	size INTEGER NOT NULL
 );
 
 CREATE INDEX name_index ON blobs(name);

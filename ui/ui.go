@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"log"
 )
 
 type UIFile struct {
@@ -88,15 +89,14 @@ func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Han
 				return
 			}
 
-			allBlobs := make([]UIFile, len(allIds))
-			for i, v := range allIds {
+			allBlobs := make([]UIFile, 0)
+			for _, v := range allIds {
 				blob, err := store.RetrieveBlobById(v)
 				if err != nil {
-					fmt.Fprintf(w, "Error retrieving blob: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
+					log.Printf( "Error retrieving blob with id %d: %v", v, err)
+				} else {
+					allBlobs = append(allBlobs, UIFile{*blob})
 				}
-				allBlobs[i] = UIFile{*blob}
 			}
 
 			cur.Contents = allBlobs

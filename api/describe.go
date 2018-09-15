@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const APIVersion = "1.0"
+const APIVersion = "1"
 
 func DescribeEndpoint() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

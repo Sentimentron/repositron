@@ -12,9 +12,6 @@ import (
 	"strconv"
 )
 
-type BlobUploadResponse struct {
-	RedirectURL string `json:"redirect_url"`
-}
 
 func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mux.Router) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,15 +45,20 @@ func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mu
 		}
 
 		// Generate a redirect for processing the actual upload
-		redirectURL, err := router.Get("ContentUpload").URL(string(blob.Id))
+		redirectURL, err := router.Get("ContentUpload").URL("id", fmt.Sprintf("%d", blob.Id))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error: %v", err)
 			return
 		}
+		if len(redirectURL.String()) == 0 {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error: %v", "cannot determine upload")
+			return
+		}
 
 		// Write the response out to the client
-		response := BlobUploadResponse{redirectURL.String()}
+		response := models.BlobUploadResponse{RedirectURL: redirectURL.String()}
 		w.Header().Add("Content-Type", "application/json")
 		enc := json.NewEncoder(w)
 		enc.Encode(response)
@@ -109,6 +111,8 @@ func UploadContentEndpointFactory(metadataStore interfaces.MetadataStore, conten
 			fmt.Fprintf(w, "Error: %v", err)
 			return
 		}
+
+		w.WriteHeader(http.StatusAccepted)
 
 	})
 

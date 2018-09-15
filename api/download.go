@@ -15,7 +15,7 @@ func GetBlobContentEndpointFactory(store interfaces.MetadataStore) http.Handler 
 		id := vars["id"]
 
 		redirectString := fmt.Sprintf("/static/%s", id)
-		http.Redirect(w, r, redirectString, 307)
+		http.Redirect(w, r, redirectString, 308)
 
 	})
 

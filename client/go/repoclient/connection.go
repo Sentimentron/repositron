@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"github.com/Sentimentron/repositron/models"
 	"net/http"
+	"log"
 )
 
-const SupportedAPIVersion = "1.0"
+const SupportedAPIVersion = "1"
 
 var UnsupportedAPIVersionError = errors.New("unsupported api verson")
 
@@ -18,6 +19,9 @@ type RepositronConnection struct {
 
 func (c *RepositronConnection) GetURL(sub string) string {
 	return fmt.Sprintf("%s/%s", c.BaseURL, sub)
+}
+func (c *RepositronConnection) GetRawURL(sub string) string {
+	return fmt.Sprintf("%s%s", c.BaseURL, sub)
 }
 
 func Connect(baseURL string) (*RepositronConnection, error) {
@@ -42,6 +46,7 @@ func Connect(baseURL string) (*RepositronConnection, error) {
 
 	// Validate that we can connect
 	if desc.APIVersion != SupportedAPIVersion {
+		log.Printf("Expected %s, got %s", SupportedAPIVersion, desc.APIVersion)
 		return nil, UnsupportedAPIVersionError
 	}
 

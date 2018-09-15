@@ -27,6 +27,18 @@ tags:
 
 paths:
 
+  /info:
+    get:
+      description: >-
+        Returns basic information about this Repositron instance.
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerDescription"
+
   /blobs:
     get:
       tags:
@@ -84,6 +96,30 @@ paths:
       responses:
         307:
           description: Follow the response to download the file.
+    put:
+      operationId: putBlobContent
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            The identifier for a given artefact.
+      tags:
+        - blobs
+        - needsTesting
+      description: >-
+        Sets the contents of a blob.
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        202:
+          description: "Accepted"
 
   /blobs/byId/{id}:
     get:
@@ -216,6 +252,14 @@ components:
           enum:
             - temp
             - permanent
+
+    ServerDescription:
+      type: object
+      required:
+        - apiVersion
+      properties:
+        apiVersion:
+          type: string
 
 security:
   - bearerAuth: []

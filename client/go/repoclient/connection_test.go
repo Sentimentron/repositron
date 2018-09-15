@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const globalTestURL = "http://localhost:8000/"
+const globalTestURL = "http://localhost:8000"
 
 func TestConnect(t *testing.T) {
 	Convey("Should be able to connect...", t, func() {

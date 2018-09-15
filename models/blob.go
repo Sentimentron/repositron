@@ -15,14 +15,14 @@ const (
 
 type Blob struct {
 	Id       int64       `db:"id" json:"id"`
-	Name     string      `json:"name" validate:"required"`
-	Bucket   string      `json:"bucket" validate:"required"`
-	Date     time.Time   `json:"uploaded"`
-	Class    BlobType    `json:"type" validate:"required,oneof=permanent temp"`
+	Name     string      `json:"name" validate:"required" db:"name"`
+	Bucket   string      `json:"bucket" validate:"required" db:"bucket"`
+	Date     time.Time   `json:"uploaded" db:"date"`
+	Class    BlobType    `json:"type" validate:"required,oneof=permanent temp" db:"class"`
 	Checksum string      `db:"sha1" json:"sha1"`
-	Uploader string      `json:"owner" validate:"required"`
-	Metadata MetadataMap `json:"metadata"`
-	Size     int64       `json:"size"`
+	Uploader string      `json:"owner" validate:"required" db:"uploader"`
+	Metadata MetadataMap `json:"metadata" db:"metadata"`
+	Size     int64       `json:"size" db:"size"`
 }
 
 func (b *Blob) Validate() error {

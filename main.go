@@ -62,16 +62,15 @@ func main() {
 
 	r.Handle("/", ui.IndexEndpointFactory(metadataStore, uiDir))
 	r.Handle("/upload", ui.UploadEndpointFactory(uiDir))
-	r.Handle("/delete/{id}", ui.DeleteConfirmEndpointFactory(metadataStore, uiDir))
-	r.Handle("/del/{id}", ui.DeleteEndpointFactory(metadataStore, dir))
+	r.Handle("/delete/{id:[0-9]+}", ui.DeleteConfirmEndpointFactory(metadataStore, uiDir))
+	r.Handle("/del/{id:[0-9]+}", ui.DeleteEndpointFactory(metadataStore, dir))
 	r.Handle("/upload/process", ui.ProcessUploadEndpointFactory(metadataStore, dir))
 
 	//s.HandleFunc("/blobs/", BlobsHandler)
-	s.Handle("/blobs/byId/{id}", api.GetBlobDescriptionByIdEndpointFactory(metadataStore)).Methods("GET")
-	s.Handle("/blobs/byId/{id}", api.DeleteBlobByIdEndpointFactory(metadataStore, dir)).Methods("DELETE")
-	s.Handle("/blobs/byId/{id}/content", api.GetBlobContentEndpointFactory(metadataStore)).Methods("GET")
-	s.Handle("/blobs/byId/{id}/content", api.UploadContentEndpointFactory(metadataStore, contentStore)).
-		Methods("PUT").Name("ContentUpload")
+	s.Handle("/blobs/byId/{id:[0-9]+}", api.GetBlobDescriptionByIdEndpointFactory(metadataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id:[0-9]+}", api.DeleteBlobByIdEndpointFactory(metadataStore, dir)).Methods("DELETE")
+	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.GetBlobContentEndpointFactory(metadataStore)).Methods("GET")
+	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.UploadContentEndpointFactory(metadataStore, contentStore)).Methods("PUT").Name("ContentUpload")
 	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(metadataStore)).Methods("POST")
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(metadataStore)).Methods("GET")
 	s.Handle("/blobs", api.UploadDescriptionEndpointFactory(metadataStore, s)).Methods("PUT")
