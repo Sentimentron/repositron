@@ -91,6 +91,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		}
 
 		// Encode the list to JSON
+		w.Header().Add("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(ret)
 		if err != nil {

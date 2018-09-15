@@ -57,6 +57,7 @@ func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mu
 
 		// Write the response out to the client
 		response := BlobUploadResponse{redirectURL.String()}
+		w.Header().Add("Content-Type", "application/json")
 		enc := json.NewEncoder(w)
 		enc.Encode(response)
 		if err != nil {

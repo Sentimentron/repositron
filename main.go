@@ -75,6 +75,7 @@ func main() {
 	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(metadataStore)).Methods("POST")
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(metadataStore)).Methods("GET")
 	s.Handle("/blobs", api.UploadDescriptionEndpointFactory(metadataStore, s)).Methods("PUT")
+	s.Handle("/info", api.DescribeEndpoint()).Methods("GET")
 
 	// Set up a handler which will serve permanent files
 	r.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
