@@ -1,26 +1,26 @@
 package repoclient
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/Sentimentron/repositron/models"
 	"io"
-	"encoding/json"
-	"bytes"
-	"net/http"
-	"log"
-	"os"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 )
 
 type UploadReader struct {
-	underlyingReader io.Reader
-	lastReportedPercentage int
-	uploadedSoFar int
-	uploadTotal int64
+	underlyingReader       io.Reader
+	lastReportedPercentage string
+	uploadedSoFar          int
+	uploadTotal            int64
 }
 
 func NewUploadReader(r io.Reader, size int64) *UploadReader {
-	return &UploadReader{r, 0, 0, size}
+	return &UploadReader{r, "", 0, size}
 }
 
 func (u *UploadReader) Read(p []byte) (int, error) {
@@ -34,12 +34,22 @@ func (u *UploadReader) Read(p []byte) (int, error) {
 
 	// Update progress and total
 	u.uploadedSoFar += r
-	percentage := (100.0 * float32(u.uploadedSoFar)) / float32(u.uploadTotal)
-	fmt.Printf("%.2f%% uploaded...\r", percentage)
+	defer u.reportProgress()
+
 	return r, err
 }
 
-func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool) error {
+func (u *UploadReader) reportProgress() {
+	percentage := (100.0 * float32(u.uploadedSoFar)) / float32(u.uploadTotal)
+	pc := fmt.Sprintf("%.2f%% uploaded...\r", percentage)
+	if pc == u.lastReportedPercentage {
+		return
+	}
+	u.lastReportedPercentage = pc
+	fmt.Print(pc)
+}
+
+func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool) (*models.Blob, error) {
 	client := &http.Client{}
 
 	if verbose {
@@ -57,7 +67,7 @@ func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool)
 	enc := json.NewEncoder(&buf)
 	err := enc.Encode(b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Post the metadata to start the upload
@@ -65,7 +75,7 @@ func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool)
 	metadataRequest.ContentLength = int64(buf.Len())
 	metadataResponse, err := client.Do(metadataRequest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer metadataResponse.Body.Close()
 
@@ -80,7 +90,7 @@ func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool)
 	dec := json.NewDecoder(bodyReader)
 	err = dec.Decode(&uploadResponse)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Upload the blob content
@@ -92,12 +102,12 @@ func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool)
 	request.ContentLength = b.Size
 	response, err := client.Do(request)
 	if err != nil {
-		return err
+		return nil, err
 	} else {
 		defer response.Body.Close()
 		if response.StatusCode != 202 {
 			bytes, _ := ioutil.ReadAll(response.Body)
-			return fmt.Errorf("bad status code: expected 202, got: %d (%s)", response.StatusCode, bytes)
+			return nil, fmt.Errorf("bad status code: expected 202, got: %d (%s)", response.StatusCode, bytes)
 		}
 	}
 
@@ -105,5 +115,5 @@ func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool)
 		fmt.Print("\n")
 	}
 
-	return nil
+	return uploadResponse.Blob, nil
 }

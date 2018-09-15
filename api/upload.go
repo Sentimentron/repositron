@@ -12,7 +12,6 @@ import (
 	"strconv"
 )
 
-
 func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mux.Router) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -58,7 +57,7 @@ func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mu
 		}
 
 		// Write the response out to the client
-		response := models.BlobUploadResponse{RedirectURL: redirectURL.String()}
+		response := models.BlobUploadResponse{RedirectURL: redirectURL.String(), Blob: blob}
 		w.Header().Add("Content-Type", "application/json")
 		enc := json.NewEncoder(w)
 		enc.Encode(response)

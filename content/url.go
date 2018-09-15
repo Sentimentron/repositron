@@ -27,7 +27,7 @@ func (s *FileSystemContentStore) getPathForId(id int64) (string, error) {
 	if id <= 0 {
 		return "", interfaces.BlobMetadataError
 	}
-	return path.Join(s.PrefixPath, string(id)), nil
+	return path.Join(s.PrefixPath, fmt.Sprintf("%d", id)), nil
 }
 
 func (s *FileSystemContentStore) RetrieveURLForBlobContent(m *models.Blob, r *mux.Router) (string, error) {

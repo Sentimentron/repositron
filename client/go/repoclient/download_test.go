@@ -1,6 +1,7 @@
 package repoclient
 
 import (
+	"bytes"
 	"github.com/Sentimentron/repositron/models"
 	. "github.com/smartystreets/goconvey/convey"
 	"strings"
@@ -8,8 +9,8 @@ import (
 	"time"
 )
 
-func TestRepositronConnection_Upload(t *testing.T) {
-	Convey("Should be able to upload...", t, func() {
+func TestRepositronConnection_Download(t *testing.T) {
+	Convey("Should be able to download...", t, func() {
 
 		c, err := Connect(globalTestURL)
 		So(err, ShouldBeNil)
@@ -36,14 +37,23 @@ func TestRepositronConnection_Upload(t *testing.T) {
 			newInfo, err := c.Upload(&info, content, false)
 			So(newInfo, ShouldNotBeNil)
 			So(err, ShouldBeNil)
-			So(newInfo.Id, ShouldBeGreaterThan, 0)
-		})
-		Convey("Should be able to upload loudly...", func() {
-			newInfo, err := c.Upload(&info, content, true)
-			So(newInfo, ShouldNotBeNil)
-			So(err, ShouldBeNil)
-			So(newInfo.Id, ShouldBeGreaterThan, 0)
-		})
 
+			Convey("Should be able to query...", func() {
+				newerInfo, err := c.QueryById(newInfo.Id)
+				So(err, ShouldBeNil)
+				Convey("Should be able to download noisily...", func() {
+					var buf bytes.Buffer
+					err := c.Download(newerInfo, &buf, true)
+					So(err, ShouldBeNil)
+					So(buf.String(), ShouldEqual, fixedContent)
+				})
+				Convey("Should be able to download silently...", func() {
+					var buf bytes.Buffer
+					err := c.Download(newerInfo, &buf, false)
+					So(err, ShouldBeNil)
+					So(buf.String(), ShouldEqual, fixedContent)
+				})
+			})
+		})
 	})
 }
