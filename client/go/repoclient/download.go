@@ -2,7 +2,6 @@ package repoclient
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"github.com/Sentimentron/repositron/models"
 	"io"
@@ -45,32 +44,7 @@ func (d *DownloadWriter) reportProgress() {
 	fmt.Print(pc)
 }
 
-func (c *RepositronConnection) QueryById(blobId int64) (*models.Blob, error) {
 
-	contentUrl := c.GetURL(fmt.Sprintf("/v1/blobs/byId/%d", blobId))
-
-	// Request the object
-	resp, err := http.Get(contentUrl)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check for errors
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("bad status code, expected %d, got %d", 200, resp.StatusCode)
-	}
-
-	// Decode the response
-	var blobResponse models.Blob
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(&blobResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return &blobResponse, nil
-}
 
 func (c *RepositronConnection) Download(b *models.Blob, w io.Writer, verbose bool) error {
 

@@ -5,13 +5,8 @@ import (
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
 	"net/http"
+	"github.com/Sentimentron/repositron/models"
 )
-
-type BlobSearch struct {
-	Name     *string `json:"name"`
-	Checksum *string `json:"checksum"`
-	Bucket   *string `json:"bucket"`
-}
 
 func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
@@ -19,7 +14,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 
 		// Parse the input
 		defer r.Body.Close()
-		var qry BlobSearch
+		var qry models.BlobSearch
 
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&qry)
@@ -85,9 +80,9 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		}
 
 		// Format a list of results
-		ret := make([]int64, 0)
+		ret := make([]string, 0)
 		for v := range matchingSet {
-			ret = append(ret, v)
+			ret = append(ret, fmt.Sprintf("%d",v))
 		}
 
 		// Encode the list to JSON
