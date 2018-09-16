@@ -23,7 +23,5 @@ type MetadataStore interface {
 	// Retrieves each distinct bucket name.
 	GetAllBuckets() ([]string, error)
 
-	// Retrieves every blob
-
 	Close() error
 }

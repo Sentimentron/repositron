@@ -81,6 +81,28 @@ func (s *Store) FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error) {
 			id = :id
 	`
 
+	if blob.Checksum == "" {
+		return nil, fmt.Errorf("required finalization data missing: checksum")
+	}
+	if blob.Bucket == "" {
+		return nil, fmt.Errorf("required finalization data missing: bucket")
+	}
+	if blob.Name == "" {
+		return nil, fmt.Errorf("required finalization data missing: name")
+	}
+	if blob.Class == "" {
+		return nil, fmt.Errorf("required finalization data missing: class")
+	}
+	if blob.Uploader == "" {
+		return nil, fmt.Errorf("required finalization data missing: uploader")
+	}
+	if blob.Metadata == nil {
+		return nil, fmt.Errorf("required finalization data missing: metadata")
+	}
+	if blob.Size == 0 {
+		return nil, fmt.Errorf("required finalization data missing: size")
+	}
+
 	if blob.Checksum == "" || blob.Bucket == "" || blob.Name == "" || blob.Class == "" || blob.Uploader == "" || blob.Metadata == nil || blob.Size == 0 {
 		return nil, fmt.Errorf("required finalization data missing")
 	}

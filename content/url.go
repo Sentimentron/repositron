@@ -62,3 +62,39 @@ func (s *FileSystemContentStore) DeleteBlobContent(m *models.Blob) error {
 
 	return os.Remove(p)
 }
+
+func (s *FileSystemContentStore) AppendBlobContent(m *models.Blob, r io.Reader) (int64, error) {
+
+	// Generate filesystem path
+	p, err := s.getPathForId(m.Id)
+	if err != nil {
+		return -1, err
+	}
+
+	// Open for appending
+	f, err := os.OpenFile(p, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0600)
+	if err != nil {
+		return -1, err
+	}
+
+	defer f.Close()
+
+	return io.Copy(f, r)
+}
+
+func (s *FileSystemContentStore) RetrieveBlobContent(m *models.Blob, w io.Writer) (int64, error) {
+	// Generate filesystem path
+	p, err := s.getPathForId(m.Id)
+	if err != nil {
+		return -1, err
+	}
+
+	// Open for reading
+	f, err := os.OpenFile(p, os.O_RDONLY, 0600)
+	if err != nil {
+		return -1, err
+	}
+
+	defer f.Close()
+	return io.Copy(w, f)
+}

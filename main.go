@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"github.com/Sentimentron/repositron/synchronization"
 )
 
 func main() {
@@ -50,6 +51,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Create the synchronization store, which stops stuff colliding on append
+	syncStore, err := synchronization.CreateMemorySynchronizationStore()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Configure the URLs
 	r := mux.NewRouter()
 	s := r.PathPrefix("/v1").Subrouter()
@@ -71,6 +78,7 @@ func main() {
 	s.Handle("/blobs/byId/{id:[0-9]+}", api.DeleteBlobByIdEndpointFactory(metadataStore, contentStore)).Methods("DELETE")
 	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.GetBlobContentEndpointFactory(metadataStore)).Methods("GET")
 	s.Handle("/blobs/byId/{id:[0-9]+}/content", api.UploadContentEndpointFactory(metadataStore, contentStore)).Methods("PUT").Name("ContentUpload")
+	s.Handle("/blobs/byId/{id:[0-9]+}/content/append", api.AppendContentEndpointFactory(metadataStore, contentStore, syncStore))
 	s.Handle("/blobs/search", api.SearchBlobEndpointFactory(metadataStore)).Methods("POST")
 	s.Handle("/blobs", api.ListAllBlobsEndpointFactory(metadataStore)).Methods("GET")
 	s.Handle("/blobs", api.UploadDescriptionEndpointFactory(metadataStore, s)).Methods("PUT")

@@ -49,6 +49,37 @@ func (u *UploadReader) reportProgress() {
 	fmt.Print(pc)
 }
 
+func (c *RepositronConnection) Append(b *models.Blob, sz int64, r io.Reader, verbose bool) (*models.Blob, error) {
+	client := &http.Client{}
+
+	// Form the upload URL
+	appendURL := c.GetURL(fmt.Sprintf("v1/blobs/byId/%d/content/append", b.Id))
+	if verbose {
+		log.Printf("Uploading content to... %s", appendURL)
+	}
+	request, err := http.NewRequest("PUT", appendURL, r)
+	request.ContentLength = sz
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	} else {
+		defer response.Body.Close()
+		if response.StatusCode != 202 {
+			bytes, _ := ioutil.ReadAll(response.Body)
+			return nil, fmt.Errorf("bad status code: expected 202, got: %d (%s)", response.StatusCode, bytes)
+		}
+
+		// Retrieve the updated blob record
+		var responseBlob models.Blob
+		dec := json.NewDecoder(response.Body)
+		err = dec.Decode(&responseBlob)
+		if err != nil {
+			return nil, err
+		}
+		return &responseBlob, nil
+	}
+}
+
 func (c *RepositronConnection) Upload(b *models.Blob, r io.Reader, verbose bool) (*models.Blob, error) {
 	client := &http.Client{}
 
