@@ -71,7 +71,7 @@ func UploadDescriptionEndpointFactory(store interfaces.MetadataStore, router *mu
 
 func AppendContentEndpointFactory(store interfaces.MetadataStore, contentStore interfaces.ContentStore, synchronizationStore interfaces.SynchronizationStore) http.Handler {
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		defer r.Body.Close()
 		vars := mux.Vars(r)
@@ -84,7 +84,7 @@ func AppendContentEndpointFactory(store interfaces.MetadataStore, contentStore i
 
 		if r.ContentLength == 0 {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w,"Error: No data provided")
+			fmt.Fprintf(w, "Error: No data provided")
 			return
 		}
 

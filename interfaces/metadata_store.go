@@ -1,8 +1,8 @@
 package interfaces
 
 import (
-	"github.com/Sentimentron/repositron/models"
 	"errors"
+	"github.com/Sentimentron/repositron/models"
 )
 
 var NoMatchingBlobsError = errors.New("no matching blobs")

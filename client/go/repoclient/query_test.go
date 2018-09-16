@@ -1,10 +1,10 @@
 package repoclient
 
 import (
-	"testing"
 	"github.com/Sentimentron/repositron/models"
-	"strings"
 	. "github.com/smartystreets/goconvey/convey"
+	"strings"
+	"testing"
 
 	"time"
 )
@@ -57,26 +57,25 @@ func TestRepositronConnection_Query(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(newInfo2, ShouldNotBeNil)
 
-
 			Convey("Should be able to query...", func() {
 				newerInfo1, err := c.QueryById(newInfo1.Id)
 				So(err, ShouldBeNil)
 				newerInfo2, err := c.QueryById(newInfo2.Id)
 				So(err, ShouldBeNil)
 
-				Convey("Should be able to search by bucket...", func(){
-					ids, err := c.QueryByBucket( "__testing")
+				Convey("Should be able to search by bucket...", func() {
+					ids, err := c.QueryByBucket("__testing")
 					So(err, ShouldBeNil)
 					So(newerInfo1.Id, ShouldBeIn, ids)
 				})
-				Convey("Should be able to search by name...", func(){
-					ids, err := c.QueryByName( "__test_upload_file")
+				Convey("Should be able to search by name...", func() {
+					ids, err := c.QueryByName("__test_upload_file")
 					So(err, ShouldBeNil)
 					So(newerInfo1.Id, ShouldBeIn, ids)
 					So(newerInfo2.Id, ShouldNotBeIn, ids)
 				})
-				Convey("Should be able to search by checksum...", func(){
-					ids, err := c.QueryByChecksum( "95d70659530e385bfae5d6eefe689d95ac463cb0c58235f19eef71bdaa725126")
+				Convey("Should be able to search by checksum...", func() {
+					ids, err := c.QueryByChecksum("95d70659530e385bfae5d6eefe689d95ac463cb0c58235f19eef71bdaa725126")
 					So(err, ShouldBeNil)
 					So(newerInfo1.Id, ShouldBeIn, ids)
 					So(newerInfo2.Id, ShouldNotBeIn, ids)
@@ -85,4 +84,3 @@ func TestRepositronConnection_Query(t *testing.T) {
 		})
 	})
 }
-

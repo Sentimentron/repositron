@@ -72,7 +72,7 @@ func (s *FileSystemContentStore) AppendBlobContent(m *models.Blob, r io.Reader) 
 	}
 
 	// Open for appending
-	f, err := os.OpenFile(p, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0600)
+	f, err := os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return -1, err
 	}

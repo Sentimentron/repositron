@@ -44,8 +44,6 @@ func (d *DownloadWriter) reportProgress() {
 	fmt.Print(pc)
 }
 
-
-
 func (c *RepositronConnection) Download(b *models.Blob, w io.Writer, verbose bool) error {
 
 	if verbose {

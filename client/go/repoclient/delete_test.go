@@ -44,7 +44,7 @@ func TestRepositronConnection_Delete(t *testing.T) {
 				Convey("Should be able to delete noisily...", func() {
 					err := c.Delete(newerInfo.Id)
 					So(err, ShouldBeNil)
-					Convey("Content should not be accessible...", func(){
+					Convey("Content should not be accessible...", func() {
 						var buf bytes.Buffer
 						err := c.Download(newerInfo, &buf, true)
 						So(err, ShouldNotBeNil)

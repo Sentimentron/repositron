@@ -49,7 +49,7 @@ func TestRepositronConnection_Upload(t *testing.T) {
 }
 
 func TestRepositronConnection_AppendDidNotExistBefore(t *testing.T) {
-	Convey("Should be able to append to a file which we have a description of, but no data", t, func(){
+	Convey("Should be able to append to a file which we have a description of, but no data", t, func() {
 
 		c, err := Connect(globalTestURL)
 		So(err, ShouldBeNil)
@@ -73,12 +73,12 @@ func TestRepositronConnection_AppendDidNotExistBefore(t *testing.T) {
 			Name:     "__test_upload_file",
 		}
 
-		Convey("Should be able to append silently....", func(){
+		Convey("Should be able to append silently....", func() {
 			newInfo, err := c.Upload(&info, content, false)
 			So(err, ShouldBeNil)
 			So(newInfo, ShouldNotBeNil)
 
-			Convey("Should be able to append to this document...", func(){
+			Convey("Should be able to append to this document...", func() {
 				newerInfo, err := c.Append(newInfo, int64(len(fixedContent)), strings.NewReader(fixedContent), false)
 				So(err, ShouldBeNil)
 				So(newerInfo.Size, ShouldEqual, len(fixedContent)+len(originalContent))

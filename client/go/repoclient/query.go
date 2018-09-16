@@ -1,11 +1,11 @@
 package repoclient
 
 import (
-	"github.com/Sentimentron/repositron/models"
-	"fmt"
-	"net/http"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/Sentimentron/repositron/models"
+	"net/http"
 	"strconv"
 )
 

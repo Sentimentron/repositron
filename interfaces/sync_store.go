@@ -8,5 +8,4 @@ type SynchronizationStore interface {
 
 	// Releases the hold on the resource.
 	Unlock(int64) error
-
 }

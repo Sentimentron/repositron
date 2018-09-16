@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
-	"net/http"
 	"github.com/Sentimentron/repositron/models"
+	"net/http"
 )
 
 func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
@@ -82,7 +82,7 @@ func SearchBlobEndpointFactory(store interfaces.MetadataStore) http.Handler {
 		// Format a list of results
 		ret := make([]string, 0)
 		for v := range matchingSet {
-			ret = append(ret, fmt.Sprintf("%d",v))
+			ret = append(ret, fmt.Sprintf("%d", v))
 		}
 
 		// Encode the list to JSON

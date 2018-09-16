@@ -1,23 +1,23 @@
 package synchronization
 
 import (
-	"time"
-	"sync"
 	"log"
+	"sync"
+	"time"
 )
 
 const tidyDuration = 5 * time.Second
 
 type syncRecord struct {
 	lastAcquired time.Time
-	mutex *sync.Mutex
+	mutex        *sync.Mutex
 }
 
 // MemorySynchronizationStore is a single-machine way of making sure
 // that multiple people don't append to the same file at once.
 type MemorySynchronizationStore struct {
 	lockMap map[int64]*syncRecord
-	lock sync.Mutex
+	lock    sync.Mutex
 }
 
 // CreateMemorySynchronizationStore initializes a store.

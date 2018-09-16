@@ -6,6 +6,7 @@ import (
 	"github.com/Sentimentron/repositron/api"
 	"github.com/Sentimentron/repositron/content"
 	"github.com/Sentimentron/repositron/database"
+	"github.com/Sentimentron/repositron/synchronization"
 	"github.com/Sentimentron/repositron/ui"
 	"github.com/Sentimentron/repositron/utils"
 	"github.com/gorilla/mux"
@@ -14,7 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-	"github.com/Sentimentron/repositron/synchronization"
 )
 
 func main() {

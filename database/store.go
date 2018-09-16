@@ -4,9 +4,9 @@ import (
 	"github.com/Sentimentron/repositron/models"
 	"github.com/jmoiron/sqlx"
 
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/Sentimentron/repositron/interfaces"
 	"fmt"
+	"github.com/Sentimentron/repositron/interfaces"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Store struct {

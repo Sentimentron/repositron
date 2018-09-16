@@ -11,13 +11,13 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
-	"log"
 )
 
 type UIFile struct {
@@ -93,7 +93,7 @@ func IndexEndpointFactory(store interfaces.MetadataStore, uiDir string) http.Han
 			for _, v := range allIds {
 				blob, err := store.RetrieveBlobById(v)
 				if err != nil {
-					log.Printf( "Error retrieving blob with id %d: %v", v, err)
+					log.Printf("Error retrieving blob with id %d: %v", v, err)
 				} else {
 					allBlobs = append(allBlobs, UIFile{*blob})
 				}
