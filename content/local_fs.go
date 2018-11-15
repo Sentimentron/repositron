@@ -9,8 +9,10 @@ import (
 	"io"
 	"os"
 	"path"
+	"errors"
 )
 
+// FileSystemContentStore lives in a local directory on this machine.
 type FileSystemContentStore struct {
 	PrefixPath string
 }
@@ -78,6 +80,41 @@ func (s *FileSystemContentStore) AppendBlobContent(m *models.Blob, r io.Reader) 
 	}
 
 	defer f.Close()
+
+	return io.Copy(f, r)
+}
+
+func (s *FileSystemContentStore) InsertBlobContent(m *models.Blob, offset int64, r io.Reader) (int64, error) {
+
+	// Generate filesystem path
+	p, err := s.getPathForId(m.Id)
+	if err != nil {
+		return -1, err
+	}
+
+	// Open for inserting
+	f, err := os.OpenFile(p, os.O_CREATE | os.O_WRONLY, 0600)
+	if err != nil {
+		return -1, err
+	}
+	defer f.Close()
+
+	// Check how large the file is, it may require enlargment
+	info, err := f.Stat()
+	if err != nil {
+		return -1, err
+	}
+	if info.Size() < offset {
+		f.Truncate(offset)
+	}
+
+	// Seek to the required offset and start writing
+	newOffset, err := f.Seek(offset, 0)
+	if err != nil {
+		return -1, err
+	} else if newOffset != offset {
+		return -1, errors.New("offsets did not match")
+	}
 
 	return io.Copy(f, r)
 }
