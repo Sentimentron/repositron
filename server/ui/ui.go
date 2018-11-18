@@ -13,7 +13,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -161,7 +160,7 @@ func DeleteConfirmEndpointFactory(store interfaces.MetadataStore, uiDir string) 
 	})
 }
 
-func DeleteEndpointFactory(store interfaces.MetadataStore, staticDir string) http.Handler {
+func DeleteEndpointFactory(store interfaces.MetadataStore, contentStore interfaces.ContentStore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Convert URL parameter
@@ -173,16 +172,20 @@ func DeleteEndpointFactory(store interfaces.MetadataStore, staticDir string) htt
 			return
 		}
 
-		err = store.DeleteBlobById(id)
+		blob, err := store.RetrieveBlobById(id)
 		if err != nil {
 			fmt.Fprintf(w, "Error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		uploadPath := path.Join(staticDir, fmt.Sprintf("%d", id))
-		os.Remove(uploadPath)
+		err = store.DeleteBlobById(id)
+		if err != nil {
+			fmt.Fprintf(w, "Error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
+		err = contentStore.DeleteBlobContent(blob)
 		if err != nil {
 			fmt.Fprintf(w, "Error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -193,7 +196,7 @@ func DeleteEndpointFactory(store interfaces.MetadataStore, staticDir string) htt
 	})
 }
 
-func ProcessUploadEndpointFactory(store interfaces.MetadataStore, staticDir string) http.Handler {
+func ProcessUploadEndpointFactory(store interfaces.MetadataStore, contentStore interfaces.ContentStore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var currentBlob models.Blob
@@ -244,19 +247,10 @@ func ProcessUploadEndpointFactory(store interfaces.MetadataStore, staticDir stri
 			return
 		}
 
-		// Write the blob content to the output directory
-		uploadPath := path.Join(staticDir, fmt.Sprintf("%d", newBlob.Id))
-		f, err := os.Create(uploadPath)
-		if err != nil {
-			fmt.Fprintf(w, "Blob create error: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		defer f.Close()
-
-		bytesWritten, err := io.Copy(f, &buf)
-		if int64(bytesWritten) != newBlob.Size {
-			fmt.Fprintf(w, "Did not write enough: %d out of %d byte(s), error: %v", bytesWritten, newBlob.Size, err)
+		// Write the blob's content
+		written, err := contentStore.AppendBlobContent(newBlob, &buf)
+		if written != newBlob.Size {
+			fmt.Fprintf(w, "Did not write enough: %d out of %d byte(s), error: %v", written, newBlob.Size, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		} else if err != nil {
@@ -265,10 +259,18 @@ func ProcessUploadEndpointFactory(store interfaces.MetadataStore, staticDir stri
 			return
 		}
 
-		f.Seek(0, 0)
+		// Read the blob's content back
+		checksumBuffer := new(bytes.Buffer)
+		read, err := contentStore.RetrieveBlobContent(newBlob, checksumBuffer)
+		if read != newBlob.Size {
+			fmt.Fprintf(w, "Did not read enough: %d out of %d byte(s), error: %v",
+				read, newBlob.Size, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		// Compute the checksum of the item
-		newBlob.Checksum = utils.ComputeSHA256Checksum(f)
+		newBlob.Checksum = utils.ComputeSHA256Checksum(checksumBuffer)
 
 		// Finalize the store
 		_, err = store.FinalizeBlobRecord(newBlob)
