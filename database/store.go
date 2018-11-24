@@ -17,22 +17,32 @@ type Store struct {
 // CreateStore generates or opens a blob store.
 func CreateStore(path string) (*Store, error) {
 
-	// Create the store if it does not exist
-	err := CreateDatabaseIfNotExists(path)
-	if err != nil {
-		return nil, err
-	}
+	if path != ":memory:" {
 
-	// Check that it's in the right format.
-	_, err = GetDatabaseSchemaVersion(path)
-	if err != nil {
-		return nil, err
+		// Create the store if it does not exist
+		err := CreateDatabaseIfNotExists(path)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check that it's in the right format.
+		_, err = GetDatabaseSchemaVersion(path)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Open the store for real this time
 	db, err := sqlx.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
+	}
+
+	if path == ":memory:" {
+		_, err = db.Exec(V1Schema)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Store{path, db}, nil

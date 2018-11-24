@@ -8,7 +8,16 @@ import (
 	"os"
 	"testing"
 	"time"
+	"github.com/Sentimentron/repositron/interfaces"
 )
+
+func TestCreateStoreInMemory(t *testing.T) {
+	Convey("Should be able to create an in-memory store...", t, func(){
+		handle, err := CreateStore(":memory:")
+		So(handle, ShouldNotBeNil)
+		So(err, ShouldBeNil)
+	})
+}
 
 func TestCreateStore(t *testing.T) {
 	Convey("Given an arbitrary file...", t, func() {
@@ -50,7 +59,7 @@ func TestStore_RetrieveBlobById(t *testing.T) {
 
 		Convey("Should return the right error if no matching records...", func() {
 			b, err := handle.RetrieveBlobById(1231)
-			So(err, ShouldEqual, NoMatchingBlobsError)
+			So(err, ShouldEqual, interfaces.NoMatchingBlobsError)
 			So(b, ShouldBeNil)
 		})
 	})
@@ -247,7 +256,7 @@ func TestStore_DeleteById(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				_, err = handle.RetrieveBlobById(updated.Id)
-				So(err, ShouldEqual, NoMatchingBlobsError)
+				So(err, ShouldEqual, interfaces.NoMatchingBlobsError)
 			})
 		})
 	})
