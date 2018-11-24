@@ -10,6 +10,7 @@ import (
 var BlobContentNotFoundError = errors.New("blob content missing")
 var BlobMetadataError = errors.New("blob metadata issue")
 var BlobContentConfigError = errors.New("bad store configuration")
+var MethodNotSupportedError = errors.New("method not supported")
 
 type ContentStore interface {
 	// Removes the content associated with a blob
