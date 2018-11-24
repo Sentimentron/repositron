@@ -1,28 +1,25 @@
 package interfaces
 
 import (
-	"errors"
 	"github.com/Sentimentron/repositron/models"
-	"github.com/gorilla/mux"
 	"io"
+	"github.com/gorilla/mux"
 )
 
-var BlobContentNotFoundError = errors.New("blob content missing")
-var BlobMetadataError = errors.New("blob metadata issue")
-var BlobContentConfigError = errors.New("bad store configuration")
+type BlobStore interface {
 
-type ContentStore interface {
 	// Removes the content associated with a blob
-	DeleteBlobContent(*models.Blob) error
+	DeleteBlobContent(models.Blob) error
 	// Writes content associated with a blob
 	// Updates metadata at the end.
-	WriteBlobContent(*models.Blob, io.Reader) (int64, error)
+	WriteBlobContent(*models.Blob, io.Reader) (*models.Blob, int64, error)
 	// Writes content to the end of a blob
-	AppendBlobContent(*models.Blob, io.Reader) (int64, error)
+	AppendBlobContent(*models.Blob, io.Reader) (*models.Blob, int64, error)
 	// Adds content at an arbitrary position within the file
-	InsertBlobContent(*models.Blob, int64, io.Reader) (int64, error)
+	InsertBlobContent(*models.Blob, int64, io.Reader) (*models.Blob, int64, error)
 	// Retrieves a URL to access the blob's content
 	RetrieveURLForBlobContent(*models.Blob, *mux.Router) (string, error)
 	// Retrieves a blob's content
 	RetrieveBlobContent(*models.Blob, io.Writer) (int64, error)
+
 }

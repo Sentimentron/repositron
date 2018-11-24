@@ -106,6 +106,15 @@ func TestFileSystemContentStore_InsertBlobContent(t *testing.T) {
 		So(written, ShouldEqual, len(content))
 
 		Convey("Should be able to retrieve that content...", func() {
+			buf := new(bytes.Buffer)
+			read, err := store.RetrieveBlobContent(blob, buf)
+			So(read, ShouldEqual, 64 + len(content))
+			So(err, ShouldBeNil)
+
+			emptyBuf := make([]byte, 64)
+
+			So(buf.Bytes()[:64], ShouldResemble, emptyBuf)
+			So(buf.Bytes()[64:], ShouldResemble, []byte(content))
 
 		})
 
