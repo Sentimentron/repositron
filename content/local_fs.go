@@ -1,6 +1,7 @@
 package content
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/Sentimentron/repositron/models"
@@ -9,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"errors"
 )
 
 // FileSystemContentStore lives in a local directory on this machine.
@@ -34,7 +34,7 @@ func (s *FileSystemContentStore) getPathForId(id int64) (string, error) {
 
 func (s *FileSystemContentStore) RetrieveURLForBlobContent(m *models.Blob, r *mux.Router) (string, error) {
 	url := r.Get("static")
-	return fmt.Sprintf("%s/%d", url, m.Id), nil
+	return fmt.Sprintf("%s/%d", url.String(), m.Id), nil
 }
 
 func (s *FileSystemContentStore) WriteBlobContent(m *models.Blob, r io.Reader) (int64, error) {
@@ -93,7 +93,7 @@ func (s *FileSystemContentStore) InsertBlobContent(m *models.Blob, offset int64,
 	}
 
 	// Open for inserting
-	f, err := os.OpenFile(p, os.O_CREATE | os.O_WRONLY, 0600)
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return -1, err
 	}

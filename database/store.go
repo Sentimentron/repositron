@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
 	_ "github.com/mattn/go-sqlite3"
+	"sync"
 )
 
 type Store struct {
 	path   string
 	handle *sqlx.DB
+	lock sync.Mutex
 }
 
 // CreateStore generates or opens a blob store.
@@ -45,7 +47,7 @@ func CreateStore(path string) (*Store, error) {
 		}
 	}
 
-	return &Store{path, db}, nil
+	return &Store{path, db, sync.Mutex{}}, nil
 }
 
 // Close disposes of the store and any underlying resources.
@@ -57,17 +59,21 @@ func (s *Store) Close() error {
 // Specifically, it stores the name, bucket, class, uploader, and metadata.
 func (s *Store) StoreBlobRecord(blob *models.Blob) (*models.Blob, error) {
 
+	s.lock.Lock()
+
 	sql := `
 		INSERT INTO blobs (name, bucket, class, uploader, metadata, date, sha1, size) 
 		VALUES (:name, :bucket, :class, :uploader, :metadata, :date, :sha1, :size)
 `
 	result, err := s.handle.NamedExec(sql, blob)
 	if err != nil {
+		s.lock.Unlock()
 		return nil, err
 	}
 
 	newId, err := result.LastInsertId()
 	if err != nil {
+		s.lock.Unlock()
 		return nil, err
 	}
 
@@ -118,10 +124,13 @@ func (s *Store) FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error) {
 	}
 
 	// Process the update
+	s.lock.Lock()
 	_, err := s.handle.NamedExec(sql, blob)
 	if err != nil {
+		s.lock.Unlock()
 		return nil, err
 	}
+	s.lock.Unlock()
 
 	// Retrieve the new blob
 	return s.RetrieveBlobById(blob.Id)
@@ -129,6 +138,8 @@ func (s *Store) FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error) {
 
 // RetrieveBlobById returns a blob record from the database with a given ID.
 func (s *Store) RetrieveBlobById(id int64) (*models.Blob, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	ret := make([]models.Blob, 0)
 	err := s.handle.Select(&ret, "SELECT id, name, bucket, date, class, sha1, uploader, metadata, size FROM blobs WHERE id = :id", id)
 	if err != nil {
@@ -142,6 +153,8 @@ func (s *Store) RetrieveBlobById(id int64) (*models.Blob, error) {
 
 // GetBlobIdsMatchingChecksum retrieves a list of blobs which match a given SHA1.
 func (s *Store) GetBlobIdsMatchingChecksum(checksum string) ([]int64, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	ret := make([]int64, 0)
 	err := s.handle.Select(&ret, "SELECT id FROM blobs WHERE sha1 = $1", checksum)
 	if err != nil {
@@ -155,6 +168,8 @@ func (s *Store) GetBlobIdsMatchingChecksum(checksum string) ([]int64, error) {
 
 // GetBlobIdsMatchingName retrieves a list of blobs which match a name.
 func (s *Store) GetBlobIdsMatchingName(name string) ([]int64, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	ret := make([]int64, 0)
 	err := s.handle.Select(&ret, "SELECT id FROM blobs WHERE name = $1", name)
 	if err != nil {
@@ -168,6 +183,8 @@ func (s *Store) GetBlobIdsMatchingName(name string) ([]int64, error) {
 
 // GetBlobIdsMatchingBucket retrieves a list of blobs which match a bucket.
 func (s *Store) GetBlobIdsMatchingBucket(bucket string) ([]int64, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	ret := make([]int64, 0)
 	err := s.handle.Select(&ret, "SELECT id FROM blobs WHERE bucket = $1", bucket)
 	if err != nil {
@@ -181,6 +198,8 @@ func (s *Store) GetBlobIdsMatchingBucket(bucket string) ([]int64, error) {
 
 // DeleteBlobById deletes a record.
 func (s *Store) DeleteBlobById(id int64) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	// Process the update
 	_, err := s.handle.Exec(`DELETE FROM blobs WHERE id = $1`, id)
 	return err
@@ -188,6 +207,8 @@ func (s *Store) DeleteBlobById(id int64) error {
 
 // GetAllBuckets retrieves a list of all the available buckets
 func (s *Store) GetAllBuckets() ([]string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	ret := make([]string, 0)
 	err := s.handle.Select(&ret, "SELECT DISTINCT bucket FROM blobs")
 	return ret, err
