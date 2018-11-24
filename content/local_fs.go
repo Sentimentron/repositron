@@ -33,8 +33,8 @@ func (s *FileSystemContentStore) getPathForId(id int64) (string, error) {
 }
 
 func (s *FileSystemContentStore) RetrieveURLForBlobContent(m *models.Blob, r *mux.Router) (string, error) {
-	url := r.Get("static")
-	return fmt.Sprintf("%s/%d", url.String(), m.Id), nil
+	url, err := r.Get("static").URL()
+	return fmt.Sprintf("%s/%d", url, m.Id), err
 }
 
 func (s *FileSystemContentStore) WriteBlobContent(m *models.Blob, r io.Reader) (int64, error) {
