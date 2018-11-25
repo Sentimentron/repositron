@@ -7,6 +7,7 @@ import (
 
 // BlobType consists of a
 type BlobType string
+type BlobIdentifier int64
 
 const (
 	PermanentBlob BlobType = "permanent"

@@ -2,14 +2,14 @@ package interfaces
 
 import (
 	"github.com/Sentimentron/repositron/models"
-	"io"
 	"github.com/gorilla/mux"
+	"io"
 )
 
 type BlobStore interface {
 
 	// Removes the content associated with a blob
-	DeleteBlobContent(models.Blob) error
+	DeleteBlobContent(*models.Blob) error
 	// Writes content associated with a blob
 	// Updates metadata at the end.
 	WriteBlobContent(*models.Blob, io.Reader) (*models.Blob, int64, error)
@@ -21,5 +21,4 @@ type BlobStore interface {
 	RetrieveURLForBlobContent(*models.Blob, *mux.Router) (string, error)
 	// Retrieves a blob's content
 	RetrieveBlobContent(*models.Blob, io.Writer) (int64, error)
-
 }
