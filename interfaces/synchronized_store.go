@@ -1,12 +1,12 @@
 package interfaces
 
 import (
-	"github.com/Sentimentron/repositron/models"
-	"io"
-	"github.com/gorilla/mux"
-	"fmt"
 	"bytes"
+	"fmt"
+	"github.com/Sentimentron/repositron/models"
 	"github.com/Sentimentron/repositron/utils"
+	"github.com/gorilla/mux"
+	"io"
 )
 
 // CombinedStore takes a content store and metadata store and updates one after another.
@@ -15,7 +15,6 @@ type CombinedStore struct {
 	m MetadataStore
 	c ContentStore
 }
-
 
 // CreateCombinedStore combines a metadataStore and a contentStore together.
 func CreateCombinedStore(metadataStore MetadataStore, contentStore ContentStore) *CombinedStore {
@@ -74,11 +73,11 @@ func (c *CombinedStore) WriteBlobContent(b *models.Blob, in io.Reader) (*models.
 	written, err := c.c.WriteBlobContent(info, in)
 	if err != nil {
 		return nil, -1, err
-	} else if written != b.Size {
-		return nil, written, fmt.Errorf("write: wrong amount written: %d vs %d", written, b.Size)
+	} else if written.Size != b.Size {
+		return nil, written.Size, fmt.Errorf("write: wrong amount written: %d vs %d", written, b.Size)
 	}
 
-	info.Size = written
+	info.Size = written.Size
 	return c.computeAndStoreChecksum(info)
 }
 
@@ -119,7 +118,7 @@ func (c *CombinedStore) AppendBlobContent(b *models.Blob, reader io.Reader) (*mo
 		return nil, -1, err
 	}
 
-	info.Size += written
+	info.Size += written.Size
 	return c.computeAndStoreChecksum(info)
 }
 
@@ -137,7 +136,7 @@ func (c *CombinedStore) InsertBlobContent(b *models.Blob, offset int64, buf io.R
 		return nil, -1, err
 	}
 
-	newMaxOffset := offset + written
+	newMaxOffset := offset + written.Size
 	if newMaxOffset > info.Size {
 		info.Size = newMaxOffset
 	}

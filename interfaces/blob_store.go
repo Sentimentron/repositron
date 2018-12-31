@@ -8,7 +8,13 @@ import (
 
 type BlobStore interface {
 
-	// Removes the content associated with a blob
+	// If false, this blob store doesn't contain the given blob,
+	ContainsBlob(*models.Blob) (bool, error)
+
+	// Removes the content associated with a blob.
+	// If the content cannot be deleted, return an error and leave the
+	// blob's content intact. Under no other circumstances should we
+	// return an error.
 	DeleteBlobContent(*models.Blob) error
 	// Writes content associated with a blob
 	// Updates metadata at the end.

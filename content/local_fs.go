@@ -37,23 +37,31 @@ func (s *FileSystemContentStore) RetrieveURLForBlobContent(m *models.Blob, r *mu
 	return fmt.Sprintf("%s/%d", url, m.Id), err
 }
 
-func (s *FileSystemContentStore) WriteBlobContent(m *models.Blob, r io.Reader) (int64, error) {
+func (s *FileSystemContentStore) WriteBlobContent(m *models.Blob, r io.Reader) (*models.Blob, error) {
 
 	// Generate filesystem path
 	p, err := s.getPathForId(m.Id)
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	// Open the file on disk
 	f, err := os.Create(p)
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	defer f.Close()
 
 	// Write the content to disk
-	return io.Copy(f, r)
+	written, err := io.Copy(f, r)
+
+	// Update and return the blob reference
+	if err != nil {
+		return nil, err
+	}
+	ret := *m
+	ret.Size = written
+	return &ret, err
 }
 
 func (s *FileSystemContentStore) DeleteBlobContent(m *models.Blob) error {
@@ -65,44 +73,78 @@ func (s *FileSystemContentStore) DeleteBlobContent(m *models.Blob) error {
 	return os.Remove(p)
 }
 
-func (s *FileSystemContentStore) AppendBlobContent(m *models.Blob, r io.Reader) (int64, error) {
+func (s *FileSystemContentStore) AppendBlobContent(m *models.Blob, r io.Reader) (*models.Blob, error) {
 
 	// Generate filesystem path
 	p, err := s.getPathForId(m.Id)
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	// Open for appending
 	f, err := os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	defer f.Close()
 
-	return io.Copy(f, r)
+	// Append the content
+	appended, err := io.Copy(f, r)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the blob record and return
+	ret := *m
+	ret.Size += appended
+	return &ret, err
 }
 
-func (s *FileSystemContentStore) InsertBlobContent(m *models.Blob, offset int64, r io.Reader) (int64, error) {
-
+func (s *FileSystemContentStore) ContainsBlob(m *models.Blob) (bool, error) {
 	// Generate filesystem path
 	p, err := s.getPathForId(m.Id)
 	if err != nil {
-		return -1, err
+		return false, err
 	}
 
 	// Open for inserting
 	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return -1, err
+		return false, err
 	}
 	defer f.Close()
 
-	// Check how large the file is, it may require enlargment
+	_, err = f.Stat()
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *FileSystemContentStore) InsertBlobContent(m *models.Blob, offset int64, r io.Reader) (*models.Blob, error) {
+
+	// Generate filesystem path
+	p, err := s.getPathForId(m.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Open for inserting
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	// Check how large the file is, it may require enlargement
 	info, err := f.Stat()
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	if info.Size() < offset {
 		f.Truncate(offset)
@@ -111,12 +153,28 @@ func (s *FileSystemContentStore) InsertBlobContent(m *models.Blob, offset int64,
 	// Seek to the required offset and start writing
 	newOffset, err := f.Seek(offset, 0)
 	if err != nil {
-		return -1, err
+		return nil, err
 	} else if newOffset != offset {
-		return -1, errors.New("offsets did not match")
+		return nil, errors.New("offsets did not match")
 	}
 
-	return io.Copy(f, r)
+	// Copy the the area to the right offset
+	inserted, err := io.Copy(f, r)
+	if err != nil {
+		return nil, err
+	}
+
+	finalOffset := newOffset + inserted
+
+	// Update the return value
+	newSize := finalOffset
+	if info.Size() > finalOffset {
+		newSize = info.Size()
+	}
+	ret := *m
+	ret.Size = newSize
+	return &ret, err
+
 }
 
 func (s *FileSystemContentStore) RetrieveBlobContent(m *models.Blob, w io.Writer) (int64, error) {

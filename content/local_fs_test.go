@@ -1,18 +1,21 @@
 package content
 
 import (
-	"testing"
+	"bytes"
+	"github.com/Sentimentron/repositron/interfaces"
+	"github.com/Sentimentron/repositron/models"
 	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"os"
-	"github.com/Sentimentron/repositron/models"
-	"time"
 	"strings"
-	"bytes"
+	"testing"
+	"time"
 )
 
 func TestCreateStore2(t *testing.T) {
-	Convey("Should be able to Create a local_fs store...", t, func(){
+	Convey("Should be able to Create a local_fs store...", t, func() {
+
+		var store interfaces.ContentStore
 
 		// Create a temporary directory containing the store
 		tmpDirPrefix := os.TempDir()
@@ -20,10 +23,11 @@ func TestCreateStore2(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		// Create the store and check for issues
-		_, err = CreateStore(tmpDir)
+		store, err = CreateStore(tmpDir)
 		So(err, ShouldBeNil)
+		So(store, ShouldNotBeNil)
 
-		Convey("Should not be able to open a store in a directory that does not exist...", func(){
+		Convey("Should not be able to open a store in a directory that does not exist...", func() {
 			_, err := CreateStore("/does/not/exist")
 			So(err, ShouldNotBeNil)
 		})
@@ -50,18 +54,18 @@ func getStoreForTesting() *FileSystemContentStore {
 }
 
 func TestFileSystemContentStore_WriteBlobContent(t *testing.T) {
-	Convey("Should be able to write content into the store...", t, func(){
+	Convey("Should be able to write content into the store...", t, func() {
 		store := getStoreForTesting()
-		blob := &models.Blob {
-			Id: 1,
-			Name: "test_file",
-			Bucket: "test_bucket",
-			Date: time.Now(),
-			Class: models.BlobType("temp"),
+		blob := &models.Blob{
+			Id:       1,
+			Name:     "test_file",
+			Bucket:   "test_bucket",
+			Date:     time.Now(),
+			Class:    models.BlobType("temp"),
 			Checksum: "",
 			Uploader: "",
 			Metadata: nil,
-			Size: 0,
+			Size:     0,
 		}
 
 		content := "some content"
@@ -69,7 +73,7 @@ func TestFileSystemContentStore_WriteBlobContent(t *testing.T) {
 
 		read, err := store.WriteBlobContent(blob, reader)
 		So(err, ShouldBeNil)
-		So(read, ShouldEqual, len(content))
+		So(read.Size, ShouldEqual, len(content))
 
 		Convey("Should be able to read what was written...", func() {
 			// Should be able to retrieve that content later
@@ -103,12 +107,12 @@ func TestFileSystemContentStore_InsertBlobContent(t *testing.T) {
 
 		written, err := store.InsertBlobContent(blob, 64, reader)
 		So(err, ShouldBeNil)
-		So(written, ShouldEqual, len(content))
+		So(written.Size, ShouldEqual, len(content)+64)
 
 		Convey("Should be able to retrieve that content...", func() {
 			buf := new(bytes.Buffer)
 			read, err := store.RetrieveBlobContent(blob, buf)
-			So(read, ShouldEqual, 64 + len(content))
+			So(read, ShouldEqual, 64+len(content))
 			So(err, ShouldBeNil)
 
 			emptyBuf := make([]byte, 64)
@@ -122,7 +126,7 @@ func TestFileSystemContentStore_InsertBlobContent(t *testing.T) {
 }
 
 func TestFileSystemContentStore_DeleteBlobContent(t *testing.T) {
-	Convey("Should be able to delete blobs when they're no longer used...", t, func(){
+	Convey("Should be able to delete blobs when they're no longer used...", t, func() {
 		store := getStoreForTesting()
 		blob := &models.Blob{
 			Id:       1,
@@ -142,7 +146,7 @@ func TestFileSystemContentStore_DeleteBlobContent(t *testing.T) {
 		_, err := store.WriteBlobContent(blob, reader)
 		So(err, ShouldBeNil)
 
-		Convey("Should be able to delete this blob...", func(){
+		Convey("Should be able to delete this blob...", func() {
 			err := store.DeleteBlobContent(blob)
 			So(err, ShouldBeNil)
 
@@ -176,14 +180,14 @@ func TestFileSystemContentStore_AppendBlobContent(t *testing.T) {
 
 		read, err := store.WriteBlobContent(blob, reader)
 		So(err, ShouldBeNil)
-		So(read, ShouldEqual, len(content))
+		So(read.Size, ShouldEqual, len(content))
 
 		Convey("Should be able to append to that blob...", func() {
 			additionalContent := " shall be appended"
 			reader := strings.NewReader(additionalContent)
 
-			written, err := store.AppendBlobContent(blob, reader)
-			So(written, ShouldEqual, len(additionalContent))
+			written, err := store.AppendBlobContent(read, reader)
+			So(written.Size, ShouldEqual, len(additionalContent)+len(content))
 			So(err, ShouldBeNil)
 
 			Convey("Should be able to read that content back...", func() {
@@ -192,7 +196,7 @@ func TestFileSystemContentStore_AppendBlobContent(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(string(writer.Bytes()), ShouldEqual, "some content shall be appended")
-				So(written, ShouldEqual, len(content) + len(additionalContent))
+				So(written, ShouldEqual, len(content)+len(additionalContent))
 			})
 		})
 	})

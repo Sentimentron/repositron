@@ -13,6 +13,10 @@ type MetadataStore interface {
 	// FinalizeBlobRecord stores the final file size,
 	FinalizeBlobRecord(blob *models.Blob) (*models.Blob, error)
 
+	// EstimateSizeOfManagedContent returns an overall size estimate for the
+	// amount of stuff stored in the database.
+	EstimateSizeOfManagedContent() (int64, error)
+
 	DeleteBlobById(id int64) error
 	RetrieveBlobById(id int64) (*models.Blob, error)
 
