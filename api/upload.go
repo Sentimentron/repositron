@@ -105,18 +105,18 @@ func AppendContentEndpointFactory(store interfaces.MetadataStore, contentStore i
 		}
 
 		// Write the content to the end of the blob
-		bytesWritten, err := contentStore.AppendBlobContent(blob, r.Body)
+		expectedSize := blob.Size + r.ContentLength
+		blob, err = contentStore.AppendBlobContent(blob, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error: %v", err)
 			return
 		}
-		if bytesWritten < r.ContentLength {
+		if blob.Size < expectedSize {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error: did not write enough (expected %d, got %d)", r.ContentLength, bytesWritten)
+			fmt.Fprintf(w, "Error: did not write enough (expected %d, got %d)", expectedSize, blob.Size)
 			return
 		}
-		blob.Size += bytesWritten
 		blob.Checksum = "<recalculating>"
 
 		// Must commit at this stage, otherwise we may experience corruption
@@ -124,7 +124,7 @@ func AppendContentEndpointFactory(store interfaces.MetadataStore, contentStore i
 		blob, err = store.FinalizeBlobRecord(blob)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error (size record stage): %v, bytesWritten=%d", err, bytesWritten)
+			fmt.Fprintf(w, "Error (size record stage): %v, bytesWritten=%d", err, blob.Size)
 			return
 		}
 
@@ -196,8 +196,8 @@ func UploadContentEndpointFactory(metadataStore interfaces.MetadataStore, conten
 		// Create a teereader so we can stream the content out to disk and compute the checksum simulatenously
 		h := sha256.New()
 		tee := io.TeeReader(r.Body, h)
-		bytesWritten, err := contentStore.WriteBlobContent(blob, tee)
-		if bytesWritten != r.ContentLength {
+		blob, err = contentStore.WriteBlobContent(blob, tee)
+		if blob.Size != r.ContentLength {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error: %v", "didn't write enough")
 			return

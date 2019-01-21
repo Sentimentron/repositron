@@ -249,8 +249,8 @@ func ProcessUploadEndpointFactory(store interfaces.MetadataStore, contentStore i
 
 		// Write the blob's content
 		written, err := contentStore.AppendBlobContent(newBlob, &buf)
-		if written != newBlob.Size {
-			fmt.Fprintf(w, "Did not write enough: %d out of %d byte(s), error: %v", written, newBlob.Size, err)
+		if written.Size != newBlob.Size {
+			fmt.Fprintf(w, "Did not write enough: %d out of %d byte(s), error: %v", written.Size, newBlob.Size, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		} else if err != nil {

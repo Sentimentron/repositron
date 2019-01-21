@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/Sentimentron/repositron/interfaces"
 	"github.com/Sentimentron/repositron/models"
 	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
@@ -8,11 +9,10 @@ import (
 	"os"
 	"testing"
 	"time"
-	"github.com/Sentimentron/repositron/interfaces"
 )
 
 func TestCreateStoreInMemory(t *testing.T) {
-	Convey("Should be able to create an in-memory store...", t, func(){
+	Convey("Should be able to create an in-memory store...", t, func() {
 		handle, err := CreateStore(":memory:")
 		So(handle, ShouldNotBeNil)
 		So(err, ShouldBeNil)
@@ -74,6 +74,7 @@ func TestStore_StoreBlobRecord(t *testing.T) {
 		os.Remove(tmpFile.Name())
 
 		handle, err := CreateStore(tmpFile.Name())
+		log.Printf("Store created...")
 		So(err, ShouldBeNil)
 		So(handle, ShouldNotBeNil)
 

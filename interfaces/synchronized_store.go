@@ -74,7 +74,7 @@ func (c *CombinedStore) WriteBlobContent(b *models.Blob, in io.Reader) (*models.
 	if err != nil {
 		return nil, -1, err
 	} else if written.Size != b.Size {
-		return nil, written.Size, fmt.Errorf("write: wrong amount written: %d vs %d", written, b.Size)
+		return nil, written.Size, fmt.Errorf("write: wrong amount written: %d vs %d", written.Size, b.Size)
 	}
 
 	info.Size = written.Size

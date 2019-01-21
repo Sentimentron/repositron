@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"github.com/Sentimentron/repositron/interfaces"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"sync"
 )
 
 type Store struct {
 	path   string
 	handle *sqlx.DB
-	lock sync.Mutex
+	lock   sync.Mutex
 }
 
 // CreateStore generates or opens a blob store.
@@ -34,6 +35,8 @@ func CreateStore(path string) (*Store, error) {
 		}
 	}
 
+	log.Printf("Opening store with sqlite3 driver at '%s'", path)
+
 	// Open the store for real this time
 	db, err := sqlx.Open("sqlite3", path)
 	if err != nil {
@@ -53,6 +56,28 @@ func CreateStore(path string) (*Store, error) {
 // Close disposes of the store and any underlying resources.
 func (s *Store) Close() error {
 	return s.handle.Close()
+}
+
+// EstimateSizeOfManagedContent returns a summary of the size of all blobs store din the database.
+func (s *Store) EstimateSizeOfManagedContent() (int64, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	sql := `SELECT SUM(size) FROM blobs`
+	result, err := s.handle.Query(sql)
+	if err != nil {
+		log.Printf("EstimateSizeOfManagedContent: SQL error: %s", err)
+		return int64(0), err
+	}
+
+	ret := int64(0)
+	for {
+		err = result.Scan(&ret)
+		break
+	}
+
+	return ret, err
+
 }
 
 // StoreBlobRecord inserts a WIP-blob into the database and allocates an id.
@@ -77,6 +102,7 @@ func (s *Store) StoreBlobRecord(blob *models.Blob) (*models.Blob, error) {
 		return nil, err
 	}
 
+	s.lock.Unlock()
 	return s.RetrieveBlobById(newId)
 }
 
